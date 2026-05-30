@@ -40,7 +40,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-paper-2 text-ink">
         <Header />
-        <main className="mx-auto w-full max-w-[1480px] px-3 py-4 pb-28 sm:px-4 md:py-5 lg:px-6 xl:pb-6 flex-1">
+        <main className="mx-auto w-full max-w-[1480px] px-2 py-3 pb-24 sm:px-4 sm:py-4 lg:px-6 xl:pb-6 flex-1 pb-safe">
           {children}
         </main>
       </body>

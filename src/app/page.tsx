@@ -154,7 +154,7 @@ export default function HomePage() {
       </div>
 
       {/* Stock List Table (Serenity style grid) */}
-      <div className="rounded-lg border border-rule bg-panel overflow-hidden">
+      <div className="rounded-lg border border-rule bg-panel overflow-hidden"><div className="table-scroll">
         {/* Header */}
         <div className="grid grid-cols-[2rem_minmax(4rem,0.7fr)_minmax(0,1fr)_auto_auto_auto_auto_auto] gap-3 px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide border-b border-rule bg-paper-2">
           <span></span>
@@ -201,7 +201,7 @@ export default function HomePage() {
             </Link>
           ))}
         </div>
-      </div>
+      </div></div>
 
       {loading && (
         <div className="text-center py-12 text-muted animate-pulse">

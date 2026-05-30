@@ -102,6 +102,28 @@ body {
   background: var(--muted);
 }
 
+/* Mobile responsive overrides */
+@media (max-width: 640px) {
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table-scroll table {
+    min-width: 640px;
+  }
+  .hide-mobile {
+    display: none !important;
+  }
+  .grid-cols-mobile-1 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Safe area for mobile */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+}
+
 /* Animation for score gauge */
 @keyframes fill-gauge {
   from { stroke-dashoffset: 283; }
