@@ -12,6 +12,7 @@ import { GLOBAL_STOCKS } from "@/lib/globalStocks";
 import { collectAllEvidences, getEvidencesForStock } from "@/lib/collectors";
 import { sequentialUpdate as sequentialBayesian, bomPrior, marketImpliedProb as marketImplied, calcConfidence, getRating } from "@/lib/bayesianEngine";
 import { getSupplyRelations, getRegionBreakdown, getRegionSummary } from "@/lib/collectors/globalTrade";
+import { fetchBatchFinancial } from "@/lib/collectors/financial";
 
 let quotesCache: Record<string, any> = {};
 let cacheTime = 0;
@@ -49,6 +50,7 @@ export async function GET(request: Request) {
 
   const quotes = await fetchQuotes();
   const { evidences, sourceStats } = await collectAllEvidences();
+  const financialData = await fetchBatchFinancial(GLOBAL_STOCKS.map(s => s.code));
 
   const results = GLOBAL_STOCKS.map((stock) => {
     const q = quotes[stock.code] || {};
@@ -72,6 +74,7 @@ export async function GET(request: Request) {
       price: q.price ?? null, changePercent, pe,
       evidenceCount: stockEvidences.length,
       supplyRelations: relations.map(r => ({ customer: r.customer, hq: r.customerHQ, product: r.product, verified: r.isVerified })),
+      financial: financialData[stock.code] || null,
     };
   }).sort((a, b) => b.rotationScore - a.rotationScore);
 

@@ -3,12 +3,18 @@
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { TrendingUp, TrendingDown, AlertTriangle, BarChart3, RefreshCw } from "lucide-react";
-import { getLiveStockList, forceRefresh } from "@/lib/apiService";
-import type { LiveStockItem } from "@/lib/apiService";
 import type { RatingLevel } from "@/lib/types";
 import { RATING_ORDER } from "@/lib/types";
 import RatingBadge from "@/components/RatingBadge";
 import ActionBadge from "@/components/ActionBadge";
+
+interface StockRow {
+  code: string; name: string; industry: string; score: number; rating: string;
+  action: string; price: number | null; changePercent: number | null;
+  pe: number | null; priceChange: string; signal: string;
+  financial?: { revenue?: number; revenueYoy?: number; netProfit?: number; profitYoy?: number; grossMargin?: number };
+  supplyRelations?: { customer: string; hq: string }[];
+}
 
 const ratingFilters: { label: string; value: string }[] = [
   { label: "全部", value: "all" },
@@ -24,14 +30,26 @@ const ratingFilters: { label: string; value: string }[] = [
 export default function HomePage() {
   const [activeFilter, setActiveFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"score" | "name" | "change">("score");
-  const [allStocks, setAllStocks] = useState<LiveStockItem[]>([]);
+  const [allStocks, setAllStocks] = useState<StockRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = async (force = false) => {
     if (force) setRefreshing(true);
-    const stocks = await getLiveStockList();
-    setAllStocks(stocks);
+    try {
+      const res = await fetch("/api/collect" + (force ? "?refresh=true" : ""), { signal: AbortSignal.timeout(10000) });
+      const data = await res.json();
+      const stocks: StockRow[] = (data.stocks || []).map((s: any) => ({
+        code: s.code, name: s.name, industry: s.industry,
+        score: s.rotationScore || 0, rating: s.rating || "中性",
+        action: "", price: s.price, changePercent: s.changePercent,
+        pe: s.pe, priceChange: s.changePercent !== null ? `${s.changePercent > 0 ? "+" : ""}${s.changePercent.toFixed(2)}%` : "--",
+        signal: s.posterior > 0.7 ? "全球供应链核心节点" : s.posterior > 0.4 ? "国际分工深入" : s.posterior > 0.2 ? "国际业务发展中" : "国内业务为主",
+        financial: s.financial || undefined,
+        supplyRelations: s.supplyRelations || [],
+      }));
+      setAllStocks(stocks);
+    } catch {}
     setLoading(false);
     setRefreshing(false);
   };
@@ -59,7 +77,7 @@ export default function HomePage() {
       total: allStocks.length,
       highRisk: allStocks.filter((s) => s.rating === "减持" || s.rating === "卖出").length,
       positive: allStocks.filter((s) => s.rating === "增持" || s.rating === "强烈推荐").length,
-      watch: allStocks.filter((s) => s.rating === "持有").length,
+      watch: allStocks.filter((s) => s.rating === "持有" || s.rating === "中性").length,
     };
   }, [allStocks]);
 
@@ -121,7 +139,7 @@ export default function HomePage() {
             </span>
           ) : allStocks.length > 0 && (
             <span>
-              上次更新: {new Date(allStocks[0]?.lastUpdated || Date.now()).toLocaleTimeString("zh-CN")}
+              上次更新: {new Date().toLocaleTimeString("zh-CN")}
               · 共 {allStocks.length} 只
             </span>
           )}
@@ -158,7 +176,7 @@ export default function HomePage() {
       {/* Stock List Table (Serenity style grid) */}
       <div className="rounded-lg border border-rule bg-panel overflow-hidden"><div className="table-scroll">
         {/* Header */}
-        <div className="grid grid-cols-[2rem_minmax(4rem,0.7fr)_minmax(0,1fr)_auto_auto_auto_auto_auto] gap-3 px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide border-b border-rule bg-paper-2">
+        <div className="grid grid-cols-[2rem_minmax(4rem,0.7fr)_minmax(0,1fr)_auto_auto_auto_auto_auto_auto] gap-3 px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide border-b border-rule bg-paper-2">
           <span></span>
           <span>代码</span>
           <span>名称</span>
@@ -166,6 +184,7 @@ export default function HomePage() {
           <span className="text-right">评级</span>
           <span className="text-right">建议</span>
           <span className="text-right cursor-pointer" onClick={() => setSortBy("change")}>涨跌幅</span>
+          <span className="text-right">市盈率</span>
           <span className="text-right">信号</span>
         </div>
 
@@ -175,7 +194,7 @@ export default function HomePage() {
             <Link
               key={stock.code}
               href={`/stock/${stock.code}`}
-              className="grid grid-cols-[2rem_minmax(4rem,0.7fr)_minmax(0,1fr)_auto_auto_auto_auto_1fr] gap-3 px-4 py-2.5 items-center hover:bg-paper-3 transition-colors"
+              className="grid grid-cols-[2rem_minmax(4rem,0.7fr)_minmax(0,1fr)_auto_auto_auto_auto_auto_1fr] gap-3 px-4 py-2.5 items-center hover:bg-paper-3 transition-colors"
             >
               <span className="flex h-6 w-6 items-center justify-center rounded bg-paper-3 text-[10px] font-semibold text-muted">
                 {stock.industry.slice(0, 2)}
@@ -189,7 +208,7 @@ export default function HomePage() {
                 {stock.score}
               </span>
               <div className="text-right">
-                <RatingBadge rating={stock.rating} size="sm" />
+                <RatingBadge rating={stock.rating as RatingLevel} size="sm" />
               </div>
               <div className="text-right">
                 <ActionBadge action={stock.action} />
