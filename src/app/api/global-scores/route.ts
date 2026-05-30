@@ -1,14 +1,13 @@
 /**
- * 全球供应链分工评分 API v4
+ * 贝叶斯供应链瓶颈评分 API
  * 
- * 评分维度: 海外收入(30%) | 国际供应链地位(25%) | 护城河(20%) | 研发强度(15%) | 客户分散度(10%)
+ * 基于P(H|E) = P(E|H)×P(H) / P(E) 的序贯更新
  */
 
 import { NextResponse } from "next/server";
-import { getAllScores } from "@/lib/globalScoring";
 import { GLOBAL_STOCKS } from "@/lib/globalStocks";
+import { getAllBayesianScores } from "@/lib/bayesianEngine";
 
-// 东方财富实时行情缓存
 let quotesCache: Record<string, any> = {};
 let cacheTime = 0;
 const CACHE_TTL = 60_000;
@@ -34,7 +33,7 @@ async function fetchQuotes(): Promise<Record<string, any>> {
       quotesCache = {};
       for (const item of data.data.diff) {
         quotesCache[String(item.f12)] = {
-          price: item.f2, changePercent: item.f3, pe: item.f21, turnoverRate: item.f20,
+          price: item.f2, changePercent: item.f3, pe: item.f21,
         };
       }
       cacheTime = now;
@@ -47,15 +46,20 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
 
-  await fetchQuotes();
-  const scores = getAllScores();
+  const quotes = await fetchQuotes();
+  const scores = getAllBayesianScores(quotes);
 
   const result = scores.map((s) => ({
     ...s,
-    action: (s as any).action || '',
-    price: quotesCache[s.code]?.price ?? null,
-    changePercent: quotesCache[s.code]?.changePercent ?? null,
-    pe: quotesCache[s.code]?.pe ?? null,
+    price: quotes[s.code]?.price ?? null,
+    changePercent: quotes[s.code]?.changePercent ?? null,
+    pe: quotes[s.code]?.pe ?? null,
+    // 简化证据输出（前端不需要完整的每条证据详情）
+    evidenceCount: s.evidences.length,
+    positiveEvidence: s.evidences.filter(e => e.type === "正面").length,
+    negativeEvidence: s.evidences.filter(e => e.type === "反面").length,
+    topEvidence: s.evidences.slice(0, 2).map(e => e.description),
+    evidences: undefined, // 移除详细证据
   }));
 
   if (code) {
