@@ -37,12 +37,12 @@ export default function PortfolioPage() {
         throw new Error("API返回空数据");
       }
 
-      // 2. 找出积极观察列表
+      // 2. 找出增持列表
       const positiveWatch = stocks
-        .filter((s: any) => s.rating === "积极观察")
+        .filter((s: any) => s.rating === "增持")
         .map((s: any) => s.code);
 
-      console.log(`[组合] 积极观察 ${positiveWatch.length} 只, 共 ${stocks.length} 只股票`);
+      console.log(`[组合] 增持 ${positiveWatch.length} 只, 共 ${stocks.length} 只股票`);
 
       // 3. 构建价格映射
       const prices: Record<string, { price: number; name: string }> = {};
@@ -74,7 +74,7 @@ export default function PortfolioPage() {
         setMessage(msgs.join(" | "));
         setTimeout(() => setMessage(""), 8000);
       } else {
-        setMessage(h.length > 0 ? `当前持仓 ${h.length} 只` : "暂无持仓，等待积极观察标的出现");
+        setMessage(h.length > 0 ? `当前持仓 ${h.length} 只` : "暂无持仓，等待增持标的出现");
       }
     } catch (err: any) {
       console.error("[组合] 加载失败:", err);
@@ -200,7 +200,7 @@ export default function PortfolioPage() {
         <div className="text-center py-12 text-muted">
           <TrendingUp className="h-12 w-12 mx-auto mb-3 opacity-30" />
           <p>暂无持仓</p>
-          <p className="text-xs mt-1">当股票进入「积极观察」评级时，将自动买入100股</p>
+          <p className="text-xs mt-1">当股票进入「增持」评级时，将自动买入100股</p>
           <button
             onClick={() => {
               startSimulation();
@@ -208,7 +208,7 @@ export default function PortfolioPage() {
             }}
             className="mt-3 px-4 py-2 rounded-full bg-ink text-white text-sm font-medium hover:opacity-90 transition-opacity"
           >
-            开始模拟 → 立即买入当前积极观察股票
+            开始模拟 → 立即买入当前增持股票
           </button>
         </div>
       )}

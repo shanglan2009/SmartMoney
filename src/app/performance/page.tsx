@@ -68,7 +68,7 @@ export default function PerformancePage() {
     latest.stocks.forEach((s) => {
       map[s.rating] = (map[s.rating] || 0) + 1;
     });
-    const order = ["高风险观察", "高风险偏多", "观察", "积极观察", "谨慎"];
+    const order = ["减持", "减持", "持有", "增持", "强烈推荐"];
     return order
       .filter((r) => map[r])
       .map((r) => ({ rating: r, count: map[r] }));
@@ -98,10 +98,10 @@ export default function PerformancePage() {
 
   const totalStocks = stocks.length;
   const riskCount = stocks.filter(
-    (s) => s.rating === "高风险观察" || s.rating === "高风险偏多"
+    (s) => s.rating === "减持" || s.rating === "减持"
   ).length;
   const positiveCount = stocks.filter(
-    (s) => s.rating === "积极观察" || s.rating === "谨慎"
+    (s) => s.rating === "增持" || s.rating === "强烈推荐"
   ).length;
 
   return (
@@ -129,15 +129,15 @@ export default function PerformancePage() {
           <p className="text-3xl font-bold text-amber-400 mt-1">
             {backtest ? `${backtest.riskWarningAccuracy}%` : "--"}
           </p>
-          <p className="text-xs text-muted mt-1">高风险观察/偏多标的</p>
+          <p className="text-xs text-muted mt-1">减持/偏多标的</p>
         </div>
         <div className="rounded-lg border border-rule bg-panel p-4">
-          <span className="text-xs text-muted uppercase tracking-wide font-medium">积极观察准确率</span>
+          <span className="text-xs text-muted uppercase tracking-wide font-medium">增持准确率</span>
           <p className="text-3xl font-bold text-emerald-700 mt-1">
             {backtest ? `${backtest.positiveWatchAccuracy}%` : "--"}
           </p>
           <p className="text-xs text-muted mt-1">
-            积极观察/谨慎标的
+            增持/强烈推荐标的
           </p>
         </div>
       </div>
@@ -227,18 +227,18 @@ export default function PerformancePage() {
             {ratingStats.map((r) => {
               const pct = (r.count / totalStocks) * 100;
               const barColors: Record<string, string> = {
-                "高风险观察": "bg-red-500",
-                "高风险偏多": "bg-amber-400",
-                "观察": "bg-blue-400",
-                "积极观察": "bg-green-500",
-                "谨慎": "bg-emerald-800",
+                "卖出": "bg-red-500",
+                "减持": "bg-amber-400",
+                "持有": "bg-blue-400",
+                "增持": "bg-green-500",
+                "强烈推荐": "bg-emerald-800",
               };
               const textColors: Record<string, string> = {
-                "高风险观察": "text-red-700",
-                "高风险偏多": "text-amber-700",
-                "观察": "text-blue-700",
-                "积极观察": "text-green-700",
-                "谨慎": "text-emerald-800",
+                "卖出": "text-red-700",
+                "减持": "text-amber-700",
+                "持有": "text-blue-700",
+                "增持": "text-green-700",
+                "强烈推荐": "text-emerald-800",
               };
               return (
                 <div key={r.rating} className="flex items-center gap-3">
@@ -314,7 +314,7 @@ export default function PerformancePage() {
           </div>
           <div>
             <span className="text-xs text-muted">策略</span>
-            <p className="text-lg font-semibold text-ink">积极观察 → 买入100股</p>
+            <p className="text-lg font-semibold text-ink">增持 → 买入100股</p>
           </div>
         </div>
       </div>

@@ -17,7 +17,7 @@
  * - 市场情绪: 高换手率+高波动 → 情绪过热 → 减分
  */
 
-export type RatingLevel = "高风险观察" | "高风险偏多" | "观察" | "积极观察" | "谨慎";
+export type RatingLevel = "强烈推荐" | "买入" | "增持" | "持有" | "中性" | "减持" | "卖出";
 
 export interface ScoreDimension {
   name: string;
@@ -127,11 +127,11 @@ function getIndustryPE(industry: string): number {
 
 export class ScoringEngine {
   static getRating(score: number): RatingLevel {
-    if (score >= 85) return "高风险观察";
-    if (score >= 70) return "高风险偏多";
-    if (score >= 40) return "观察";
-    if (score >= 20) return "积极观察";
-    return "谨慎";
+    if (score >= 85) return "减持";
+    if (score >= 70) return "减持";
+    if (score >= 40) return "持有";
+    if (score >= 20) return "增持";
+    return "强烈推荐";
   }
 
   static getAction(score: number, buySignal: number): string {

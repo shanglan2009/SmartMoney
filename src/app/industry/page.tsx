@@ -22,7 +22,7 @@ export default function IndustryPage() {
         {industryData.map((ind) => {
           const stocks = allStocks.filter((s) => ind.stocks.includes(s.code));
           const avgScore = stocks.reduce((sum, s) => sum + s.score, 0) / stocks.length;
-          const highRiskCount = stocks.filter((s) => s.rating === "高风险观察" || s.rating === "高风险偏多").length;
+          const highRiskCount = stocks.filter((s) => s.rating === "减持" || s.rating === "卖出").length;
 
           return (
             <div key={ind.name} className="rounded-lg border border-rule bg-panel p-4">

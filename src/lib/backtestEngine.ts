@@ -88,13 +88,13 @@ function generateHistoricalScore(currentScore: number, monthsBack: number): numb
  * 判断预测是否正确
  */
 function isPredictionCorrect(rating: RatingLevel, direction: "up" | "down" | "flat"): boolean {
-  if (rating === "积极观察" || rating === "谨慎") {
+  if (rating === "增持" || rating === "强烈推荐" || rating === "买入") {
     return direction === "up";
   }
-  if (rating === "高风险观察" || rating === "高风险偏多") {
+  if (rating === "减持" || rating === "卖出") {
     return direction === "down";
   }
-  // "观察" = 中性，涨跌都算正确
+  // "持有" = 中性，涨跌都算正确
   return true;
 }
 
@@ -181,11 +181,11 @@ export function generateRealBacktest(
       globalCorrect = monthCorrect;
       globalWrong = monthWrong;
 
-      const riskStocks = stocks.filter((s) => s.rating === "高风险观察" || s.rating === "高风险偏多");
+      const riskStocks = stocks.filter((s) => s.rating === "减持" || s.rating === "卖出");
       riskTotal = riskStocks.length;
       riskCorrect = riskStocks.filter((s) => s.direction === "down").length;
 
-      const positiveStocks = stocks.filter((s) => s.rating === "积极观察" || s.rating === "谨慎");
+      const positiveStocks = stocks.filter((s) => s.rating === "增持" || s.rating === "强烈推荐" || s.rating === "买入");
       positiveTotal = positiveStocks.length;
       positiveCorrect = positiveStocks.filter((s) => s.direction === "up").length;
     }

@@ -12,12 +12,13 @@ import ActionBadge from "@/components/ActionBadge";
 
 const ratingFilters: { label: string; value: string }[] = [
   { label: "全部", value: "all" },
-  { label: "🔥 适合买入", value: "action_buy" },
-  { label: "高风险观察", value: "高风险观察" },
-  { label: "高风险偏多", value: "高风险偏多" },
-  { label: "观察", value: "观察" },
-  { label: "积极观察", value: "积极观察" },
-  { label: "谨慎", value: "谨慎" },
+  { label: "🟢 强烈推荐", value: "强烈推荐" },
+  { label: "✅ 买入", value: "买入" },
+  { label: "📈 增持", value: "增持" },
+  { label: "⏸️ 持有", value: "持有" },
+  { label: "⚖️ 中性", value: "中性" },
+  { label: "⬇️ 减持", value: "减持" },
+  { label: "🔴 卖出", value: "卖出" },
 ];
 
 export default function HomePage() {
@@ -44,7 +45,6 @@ export default function HomePage() {
 
   const filtered = useMemo(() => {
     let list = activeFilter === "all" ? allStocks
-      : activeFilter === "action_buy" ? allStocks.filter((s) => s.action === "适合买入" || s.action === "积极加仓")
       : allStocks.filter((s) => s.rating === activeFilter);
     return [...list].sort((a, b) => {
       if (sortBy === "score") return b.score - a.score;
@@ -57,18 +57,20 @@ export default function HomePage() {
   const stats = useMemo(() => {
     return {
       total: allStocks.length,
-      highRisk: allStocks.filter((s) => s.rating === "高风险观察" || s.rating === "高风险偏多").length,
-      positive: allStocks.filter((s) => s.rating === "积极观察" || s.rating === "谨慎").length,
-      watch: allStocks.filter((s) => s.rating === "观察").length,
+      highRisk: allStocks.filter((s) => s.rating === "减持" || s.rating === "卖出").length,
+      positive: allStocks.filter((s) => s.rating === "增持" || s.rating === "强烈推荐").length,
+      watch: allStocks.filter((s) => s.rating === "持有").length,
     };
   }, [allStocks]);
 
   const getScoreColor = (score: number) => {
-    if (score >= 85) return "text-red-600";
-    if (score >= 70) return "text-amber-400";
-    if (score >= 40) return "text-blue-400";
-    if (score >= 20) return "text-green-600";
-    return "text-emerald-800";
+    if (score >= 85) return "text-emerald-600";
+    if (score >= 70) return "text-green-600";
+    if (score >= 55) return "text-teal-600";
+    if (score >= 40) return "text-slate-600";
+    if (score >= 25) return "text-amber-500";
+    if (score >= 10) return "text-orange-500";
+    return "text-red-500";
   };
 
   return (
@@ -89,7 +91,7 @@ export default function HomePage() {
             <AlertTriangle className="h-4 w-4 text-red-600" />
           </div>
           <p className="mt-2 text-2xl font-semibold text-red-600">{stats.highRisk}</p>
-          <p className="text-xs text-muted mt-1">高风险观察 · 高风险偏多</p>
+          <p className="text-xs text-muted mt-1">减持 · 减持</p>
         </div>
         <div className="rounded-lg border border-rule bg-panel p-4">
           <div className="flex items-center justify-between">
@@ -101,7 +103,7 @@ export default function HomePage() {
         </div>
         <div className="rounded-lg border border-rule bg-panel p-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted font-medium uppercase tracking-wide">健康/谨慎</span>
+            <span className="text-xs text-muted font-medium uppercase tracking-wide">健康/强烈推荐</span>
             <TrendingDown className="h-4 w-4 text-green-600" />
           </div>
           <p className="mt-2 text-2xl font-semibold text-green-600">{stats.positive}</p>

@@ -1,26 +1,22 @@
 // ========== 供应链评分 & 评级 ==========
 
 export type RatingLevel =
-  | "高风险观察"
-  | "高风险偏多"
-  | "观察"
-  | "积极观察"
-  | "谨慎";
+  | "强烈推荐" | "买入" | "增持"
+  | "持有" | "中性"
+  | "减持" | "卖出";
 
 export const RATING_ORDER: RatingLevel[] = [
-  "高风险观察",
-  "高风险偏多",
-  "观察",
-  "积极观察",
-  "谨慎",
+  "强烈推荐", "买入", "增持", "持有", "中性", "减持", "卖出",
 ];
 
 export const RATING_COLORS: Record<RatingLevel, string> = {
-  "高风险观察": "rating-high-risk-watch",
-  "高风险偏多": "rating-high-risk-bullish",
-  "观察": "rating-watch",
-  "积极观察": "rating-positive-watch",
-  "谨慎": "rating-cautious",
+  "强烈推荐": "rating-strong-buy",
+  "买入": "rating-buy",
+  "增持": "rating-overweight",
+  "持有": "rating-hold",
+  "中性": "rating-neutral",
+  "减持": "rating-underweight",
+  "卖出": "rating-sell",
 };
 
 // ========== 评分维度 ==========

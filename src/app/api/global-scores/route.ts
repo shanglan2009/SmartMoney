@@ -52,6 +52,7 @@ export async function GET(request: Request) {
 
   const result = scores.map((s) => ({
     ...s,
+    action: (s as any).action || '',
     price: quotesCache[s.code]?.price ?? null,
     changePercent: quotesCache[s.code]?.changePercent ?? null,
     pe: quotesCache[s.code]?.pe ?? null,

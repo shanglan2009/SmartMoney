@@ -11,22 +11,30 @@
 
 import { GLOBAL_STOCKS, type GlobalStock } from "./globalStocks";
 
-export type RatingLevel = "高风险观察" | "高风险偏多" | "观察" | "积极观察" | "谨慎";
+export type RatingLevel =
+  | "强烈推荐" | "买入" | "增持"
+  | "持有" | "中性"
+  | "减持" | "卖出";
 
 export function getRating(score: number): RatingLevel {
-  if (score >= 85) return "高风险观察";
-  if (score >= 70) return "高风险偏多";
-  if (score >= 40) return "观察";
-  if (score >= 20) return "积极观察";
-  return "谨慎";
+  if (score >= 85) return "强烈推荐";
+  if (score >= 70) return "买入";
+  if (score >= 55) return "增持";
+  if (score >= 40) return "持有";
+  if (score >= 25) return "中性";
+  if (score >= 10) return "减持";
+  return "卖出";
 }
 
-export function getAction(score: number): string {
-  if (score >= 85) return "警惕";
-  if (score >= 70) return "减仓";
-  if (score >= 40) return "持有";
-  if (score >= 20) return "买入";
-  return "积极加仓";
+export function getAction(score: number, overseasRatio?: number): string {
+  const overseas = overseasRatio ?? 0;
+  if (score >= 85) return overseas >= 0.5 ? "全球龙头·强烈推荐" : "强烈推荐";
+  if (score >= 70) return "建议买入·重点配置";
+  if (score >= 55) return "建议增持·逐步加仓";
+  if (score >= 40) return "建议持有·观望等待";
+  if (score >= 25) return "中性·等待催化剂";
+  if (score >= 10) return "建议减持·降低仓位";
+  return "建议卖出·清仓回避";
 }
 
 // 护城河评分映射
@@ -85,7 +93,7 @@ export function calculateScore(stock: GlobalStock): GlobalScore {
 
   const score = Math.round(total * 10) / 10;
   const rating = getRating(score);
-  const action = getAction(score);
+  const action = getAction(score, stock.overseasRatio);
 
   return {
     score,

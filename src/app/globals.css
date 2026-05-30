@@ -60,31 +60,41 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Rating badge colors */
-.rating-high-risk-watch {
-  background-color: var(--color-danger-soft);
-  color: var(--color-danger);
-  border-color: var(--color-danger);
+/* Rating badge colors — 新评级体系 */
+.rating-strong-buy {
+  background-color: #ecfdf5;
+  color: #047857;
+  border-color: #6ee7b7;
 }
-.rating-high-risk-bullish {
-  background-color: var(--color-warning-soft);
-  color: var(--color-warning);
-  border-color: var(--color-warning);
+.rating-buy {
+  background-color: #f0fdf4;
+  color: #16a34a;
+  border-color: #86efac;
 }
-.rating-watch {
-  background-color: var(--color-accent-soft);
-  color: var(--color-accent);
-  border-color: var(--color-accent);
+.rating-overweight {
+  background-color: #f0fdfa;
+  color: #0d9488;
+  border-color: #5eead4;
 }
-.rating-positive-watch {
-  background-color: var(--color-positive-soft);
-  color: var(--color-positive);
-  border-color: var(--color-positive);
+.rating-hold {
+  background-color: #f8fafc;
+  color: #475569;
+  border-color: #cbd5e1;
 }
-.rating-cautious {
-  background-color: var(--color-violet-soft);
-  color: var(--color-violet);
-  border-color: var(--color-violet);
+.rating-neutral {
+  background-color: #fffbeb;
+  color: #d97706;
+  border-color: #fde68a;
+}
+.rating-underweight {
+  background-color: #fff7ed;
+  color: #ea580c;
+  border-color: #fed7aa;
+}
+.rating-sell {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-color: #fca5a5;
 }
 
 /* Scrollbar styling */
