@@ -167,6 +167,25 @@ async function fetchQuotes(): Promise<Record<string, any>> {
 
 // ========== 主计算函数 ==========
 
+// 原材料价格影响缓存
+let materialCache: Record<string, number> = {};
+let materialCacheTime = 0;
+const MATERIAL_CACHE_TTL = 10 * 60 * 1000;
+
+async function refreshMaterialCache() {
+  const now = Date.now();
+  if (now - materialCacheTime < MATERIAL_CACHE_TTL) return;
+  try {
+    const { getMaterialImpactScore, getAllMaterialPrices } = await import("@/lib/supplyChainCollector");
+    const prices = await getAllMaterialPrices();
+    const industries = [...new Set(ALL_STOCKS.map(s => s.industry))];
+    for (const ind of industries) {
+      materialCache[ind] = getMaterialImpactScore(ind, prices);
+    }
+    materialCacheTime = now;
+  } catch {}
+}
+
 function computeAllScores(quotes: Record<string, any>): ScoreResult[] {
   const now = new Date().toISOString();
   return ALL_STOCKS.map((stock) => {
@@ -179,10 +198,12 @@ function computeAllScores(quotes: Record<string, any>): ScoreResult[] {
     const turnoverRate = q.turnoverRate || null;
     // 上月涨跌幅暂用本月的一半作为近似（精确值需要历史K线）
     const prevMonthChange = changePercent !== null ? changePercent * 0.6 : null;
+    // 原材料成本压力（从缓存获取，避免重复请求）
+    const materialImpact = materialCache[stock.industry] ?? 0;
     
     const score = ScoringEngine.calculateFullScore(
       stock.industry, price, pe, null, changePercent, stock.code,
-      prevMonthChange, turnoverRate
+      prevMonthChange, turnoverRate, materialImpact
     );
     const suppliers = ScoringEngine.getSuppliersForIndustry(stock.industry);
 
@@ -238,6 +259,7 @@ export async function GET(request: Request) {
 
   // 重新计算
   console.log(`[API /api/scores] Refreshing scores for ${ALL_STOCKS.length} stocks...`);
+  await refreshMaterialCache();
   const quotes = await fetchQuotes();
   const results = computeAllScores(quotes);
   scoreCache = { timestamp: Date.now(), data: results };

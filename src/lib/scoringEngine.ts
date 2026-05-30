@@ -153,6 +153,7 @@ export class ScoringEngine {
     // 新增参数
     prevMonthChange: number | null = null,  // 上月涨跌幅(动量)
     turnoverRate: number | null = null,     // 换手率(情绪)
+    materialPriceImpact: number | null = null,  // 原材料成本压力影响 (-20 ~ +30)
   ): FullScore {
     // ===== 供应链因子（原有，权重降低） =====
     const suppliers = INDUSTRY_SUPPLIERS[industry] || this._getDefaultSuppliers(industry);
@@ -183,6 +184,9 @@ export class ScoringEngine {
     // ===== 🌊 新增因子9: 市场情绪 =====
     const sentimentScore = this._scoreSentiment(changePercent, turnoverRate);
 
+    // ===== 🛢️ 新增因子10: 原材料成本压力 =====
+    const materialScore = this._scoreMaterialPressure(industry, materialPriceImpact || 0);
+
     // ===== 综合权重分配 =====
     const dims: ScoreDimension[] = [
       { name: "供应商集中度", score: s1, weight: 0.15, isSupplyChain: true },
@@ -193,7 +197,8 @@ export class ScoringEngine {
       { name: "下游客户集中度", score: s6, weight: 0.04, isSupplyChain: true },
       { name: "📈 价格动量", score: momentumScore, weight: 0.20, isSupplyChain: false },
       { name: "💰 估值吸引力", score: valuationScore, weight: 0.15, isSupplyChain: false },
-      { name: "🌊 市场情绪", score: sentimentScore, weight: 0.10, isSupplyChain: false },
+      { name: "🌊 市场情绪", score: sentimentScore, weight: 0.08, isSupplyChain: false },
+      { name: "🛢️ 原材料成本", score: materialScore, weight: 0.07, isSupplyChain: false },
     ];
 
     // 基础分（供应链）
@@ -204,7 +209,7 @@ export class ScoringEngine {
     baseScore += codeRisk * 0.15;
 
     // 叠加市场因子
-    baseScore += momentumScore * 0.20 + valuationScore * 0.15 + sentimentScore * 0.10;
+    baseScore += momentumScore * 0.20 + valuationScore * 0.15 + sentimentScore * 0.08 + materialScore * 0.07;
 
     const overall = Math.round(Math.min(100, Math.max(0, baseScore)) * 10) / 10;
     const rating = this.getRating(overall);
@@ -280,6 +285,15 @@ export class ScoringEngine {
     if (turnover > 3 || absChange > 4) return 50;
     if (turnover > 1) return 35;
     return 20;  // 低换手+低波动 → 情绪稳定
+  }
+
+  /** 🛢️ 原材料成本压力: 涨价→高风险 降价→低风险 */
+  private static _scoreMaterialPressure(industry: string, impact: number): number {
+    if (impact === 0) return 50;  // 无数据=中性
+    // impact范围-20~+30, 映射到0-100
+    // -20 → 0(利好)  0 → 50(中性)  +30 → 100(利空)
+    const score = 50 + impact * 1.67;
+    return Math.round(Math.min(100, Math.max(0, score)));
   }
 
   // ===== 原有供应链因子（保持但权重降低） =====
