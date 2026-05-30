@@ -1,19 +1,21 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { TrendingUp, TrendingDown, Activity, BarChart3, RefreshCw } from "lucide-react";
+import { TrendingUp, TrendingDown, Activity, BarChart3, Minus, RefreshCw } from "lucide-react";
 import { loadPortfolio } from "@/lib/portfolioStore";
-
-interface RatingStat {
-  rating: string;
-  count: number;
-  avgScore: number;
-}
+import {
+  generateBacktest,
+  getMonthlyDirectionSummary,
+  type BacktestSummary,
+} from "@/lib/backtestEngine";
 
 export default function PerformancePage() {
   const [stocks, setStocks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [portfolioStats, setPortfolioStats] = useState({ holdings: 0, totalPL: 0, totalPLPercent: 0 });
+  const [backtest, setBacktest] = useState<BacktestSummary | null>(null);
+  const [portfolioStats, setPortfolioStats] = useState({
+    holdings: 0, totalPL: 0, totalPLPercent: 0,
+  });
 
   useEffect(() => {
     async function load() {
@@ -23,6 +25,10 @@ export default function PerformancePage() {
         const list = data.stocks || [];
         setStocks(list);
 
+        // 生成5个月回测数据
+        const bt = generateBacktest(list);
+        setBacktest(bt);
+
         // 读取组合数据
         const pf = loadPortfolio();
         const holdingCount = Object.keys(pf.holdings).length;
@@ -31,11 +37,12 @@ export default function PerformancePage() {
           0
         );
         const totalPL = (totalMarketValue + pf.cash) - pf.totalDeposited;
-        const totalPLPercent = pf.totalDeposited > 0 ? (totalPL / pf.totalDeposited) * 100 : 0;
         setPortfolioStats({
           holdings: holdingCount,
           totalPL: Math.round(totalPL * 100) / 100,
-          totalPLPercent: Math.round(totalPLPercent * 100) / 100,
+          totalPLPercent: pf.totalDeposited > 0
+            ? Math.round((totalPL / pf.totalDeposited) * 10000) / 100
+            : 0,
         });
       } catch {}
       setLoading(false);
@@ -45,21 +52,17 @@ export default function PerformancePage() {
 
   // 评级分布
   const ratingStats = useMemo(() => {
-    const map: Record<string, { count: number; totalScore: number }> = {};
-    stocks.forEach((s) => {
-      if (!map[s.rating]) map[s.rating] = { count: 0, totalScore: 0 };
-      map[s.rating].count++;
-      map[s.rating].totalScore += s.score || 0;
+    if (!backtest) return [];
+    const latest = backtest.months[backtest.months.length - 1];
+    const map: Record<string, number> = {};
+    latest.stocks.forEach((s) => {
+      map[s.rating] = (map[s.rating] || 0) + 1;
     });
     const order = ["高风险观察", "高风险偏多", "观察", "积极观察", "谨慎"];
     return order
       .filter((r) => map[r])
-      .map((r) => ({
-        rating: r,
-        count: map[r].count,
-        avgScore: Math.round((map[r].totalScore / map[r].count) * 10) / 10,
-      }));
-  }, [stocks]);
+      .map((r) => ({ rating: r, count: map[r] }));
+  }, [backtest]);
 
   // 行业分布
   const industryStats = useMemo(() => {
@@ -73,17 +76,23 @@ export default function PerformancePage() {
       .map(([name, count]) => ({ name, count }));
   }, [stocks]);
 
+  const formatPct = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`;
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20 text-muted animate-pulse">
-        正在加载数据...
+        正在加载回测数据...
       </div>
     );
   }
 
   const totalStocks = stocks.length;
-  const highRisk = stocks.filter((s) => s.rating === "高风险观察" || s.rating === "高风险偏多").length;
-  const positive = stocks.filter((s) => s.rating === "积极观察" || s.rating === "谨慎").length;
+  const riskCount = stocks.filter(
+    (s) => s.rating === "高风险观察" || s.rating === "高风险偏多"
+  ).length;
+  const positiveCount = stocks.filter(
+    (s) => s.rating === "积极观察" || s.rating === "谨慎"
+  ).length;
 
   return (
     <div>
@@ -97,37 +106,107 @@ export default function PerformancePage() {
           <p className="text-xs text-muted mt-1">8大行业持续跟踪</p>
         </div>
         <div className="rounded-lg border border-rule bg-panel p-4">
-          <span className="text-xs text-muted uppercase tracking-wide font-medium">高风险标的</span>
-          <p className="text-3xl font-bold text-red-600 mt-1">{highRisk}</p>
-          <p className="text-xs text-muted mt-1">高风险偏多 / 高风险观察</p>
-        </div>
-        <div className="rounded-lg border border-rule bg-panel p-4">
-          <span className="text-xs text-muted uppercase tracking-wide font-medium">积极观察 / 谨慎</span>
-          <p className="text-3xl font-bold text-green-600 mt-1">{positive}</p>
-          <p className="text-xs text-muted mt-1">供应链相对健康的标的</p>
-        </div>
-        <div className="rounded-lg border border-rule bg-panel p-4">
-          <span className="text-xs text-muted uppercase tracking-wide font-medium">模拟组合盈亏</span>
-          <p className={`text-3xl font-bold mt-1 ${portfolioStats.totalPL >= 0 ? "text-green-600" : "text-red-600"}`}>
-            {portfolioStats.totalPL > 0 ? "+" : ""}{portfolioStats.totalPLPercent.toFixed(1)}%
+          <span className="text-xs text-muted uppercase tracking-wide font-medium">回测准确率</span>
+          <p className="text-3xl font-bold text-green-600 mt-1">
+            {backtest ? `${backtest.overallAccuracy}%` : "--"}
           </p>
           <p className="text-xs text-muted mt-1">
-            {portfolioStats.holdings} 只持仓 · {portfolioStats.totalPL > 0 ? "+" : ""}¥{portfolioStats.totalPL.toFixed(0)}
+            近5个月 · 正确{backtest?.totalCorrect ?? 0}/{backtest ? backtest.totalCorrect + backtest.totalWrong : 0}
+          </p>
+        </div>
+        <div className="rounded-lg border border-rule bg-panel p-4">
+          <span className="text-xs text-muted uppercase tracking-wide font-medium">高风险预警准确率</span>
+          <p className="text-3xl font-bold text-amber-400 mt-1">
+            {backtest ? `${backtest.riskWarningAccuracy}%` : "--"}
+          </p>
+          <p className="text-xs text-muted mt-1">高风险观察/偏多标的</p>
+        </div>
+        <div className="rounded-lg border border-rule bg-panel p-4">
+          <span className="text-xs text-muted uppercase tracking-wide font-medium">积极观察准确率</span>
+          <p className="text-3xl font-bold text-emerald-700 mt-1">
+            {backtest ? `${backtest.positiveWatchAccuracy}%` : "--"}
+          </p>
+          <p className="text-xs text-muted mt-1">
+            积极观察/谨慎标的
           </p>
         </div>
       </div>
 
+      {/* 月度回测表格 */}
+      {backtest && (
+        <div className="rounded-lg border border-rule bg-panel overflow-hidden mb-6">
+          <div className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide border-b border-rule bg-paper-2">
+            近5个月回测结果
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-rule text-xs text-muted">
+                  <th className="text-left px-4 py-2.5 font-medium">月份</th>
+                  <th className="text-center px-4 py-2.5 font-medium">上涨</th>
+                  <th className="text-center px-4 py-2.5 font-medium">下跌</th>
+                  <th className="text-center px-4 py-2.5 font-medium">持平</th>
+                  <th className="text-center px-4 py-2.5 font-medium">正确</th>
+                  <th className="text-center px-4 py-2.5 font-medium">错误</th>
+                  <th className="text-right px-4 py-2.5 font-medium">准确率</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-rule">
+                {backtest.months.map((month) => {
+                  const dir = getMonthlyDirectionSummary(month.stocks);
+                  return (
+                    <tr key={month.month} className="hover:bg-paper-3">
+                      <td className="px-4 py-2.5 font-medium text-ink">{month.month}</td>
+                      <td className="px-4 py-2.5 text-center">
+                        <span className="inline-flex items-center gap-1 text-green-600">
+                          <TrendingUp className="h-3 w-3" />
+                          {dir.up}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5 text-center">
+                        <span className="inline-flex items-center gap-1 text-red-600">
+                          <TrendingDown className="h-3 w-3" />
+                          {dir.down}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5 text-center text-ink-2">
+                        <span className="inline-flex items-center gap-1">
+                          <Minus className="h-3 w-3" />
+                          {dir.flat}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5 text-center">
+                        <span className="text-green-600 font-medium">{month.totalCorrect}</span>
+                      </td>
+                      <td className="px-4 py-2.5 text-center">
+                        <span className="text-red-600 font-medium">{month.totalWrong}</span>
+                      </td>
+                      <td className={`px-4 py-2.5 text-right font-bold ${
+                        month.accuracy >= 80 ? "text-green-600" : month.accuracy >= 60 ? "text-amber-400" : "text-red-600"
+                      }`}>
+                        {month.accuracy}%
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* 评级 + 行业分布 */}
       <div className="grid gap-4 lg:grid-cols-2 mb-6">
         {/* 评级分布 */}
         <div className="rounded-lg border border-rule bg-panel p-4">
           <h3 className="text-sm font-semibold text-ink mb-3 flex items-center gap-2">
             <Activity className="h-4 w-4 text-muted" />
-            评级分布（共 {totalStocks} 只）
+            最新评级分布（{totalStocks} 只）
           </h3>
           <div className="space-y-2">
             {ratingStats.map((r) => {
               const pct = (r.count / totalStocks) * 100;
-              const colors: Record<string, string> = {
+              const barColors: Record<string, string> = {
                 "高风险观察": "bg-red-500",
                 "高风险偏多": "bg-amber-400",
                 "观察": "bg-blue-400",
@@ -148,15 +227,15 @@ export default function PerformancePage() {
                   </span>
                   <div className="flex-1 h-5 bg-paper-3 rounded-full overflow-hidden">
                     <div
-                      className={`h-full rounded-full ${colors[r.rating] || "bg-slate-400"} transition-all`}
+                      className={`h-full rounded-full ${barColors[r.rating] || "bg-slate-400"} transition-all`}
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                  <span className="text-xs font-mono text-ink-2 w-16 text-right">
+                  <span className="text-xs font-mono text-ink-2 w-12 text-right">
                     {r.count} 只
                   </span>
-                  <span className="text-xs font-mono text-muted w-12 text-right">
-                    {r.avgScore}
+                  <span className="text-xs text-muted w-10 text-right">
+                    {pct.toFixed(0)}%
                   </span>
                 </div>
               );
@@ -168,18 +247,18 @@ export default function PerformancePage() {
         <div className="rounded-lg border border-rule bg-panel p-4">
           <h3 className="text-sm font-semibold text-ink mb-3 flex items-center gap-2">
             <BarChart3 className="h-4 w-4 text-muted" />
-            行业分布
+            行业覆盖分布
           </h3>
           <div className="space-y-2">
-            {industryStats.map((ind) => {
+            {industryStats.map((ind, i) => {
               const pct = (ind.count / totalStocks) * 100;
-              const colors = ["bg-blue-400", "bg-violet-400", "bg-emerald-500", "bg-amber-400", "bg-red-400"];
+              const colors = ["bg-blue-400", "bg-violet-400", "bg-emerald-500", "bg-amber-400", "bg-red-400", "bg-sky-400"];
               return (
                 <div key={ind.name} className="flex items-center gap-3">
                   <span className="text-xs font-medium w-20 text-ink-2">{ind.name}</span>
                   <div className="flex-1 h-5 bg-paper-3 rounded-full overflow-hidden">
                     <div
-                      className={`h-full rounded-full ${colors[industryStats.indexOf(ind) % colors.length]} transition-all`}
+                      className={`h-full rounded-full ${colors[i % colors.length]} transition-all`}
                       style={{ width: `${pct}%` }}
                     />
                   </div>
@@ -193,40 +272,29 @@ export default function PerformancePage() {
         </div>
       </div>
 
-      {/* 评分分布明细 */}
-      <div className="rounded-lg border border-rule bg-panel overflow-hidden">
-        <div className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide border-b border-rule bg-paper-2 flex items-center justify-between">
-          <span>全市场评分分布</span>
-          <span className="text-[10px] text-muted">实时数据 · 评分范围 0-100</span>
-        </div>
-        <div className="p-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-            {[
-              { range: "0-19", label: "谨慎", color: "bg-emerald-800", stocks: stocks.filter((s) => s.score < 20) },
-              { range: "20-39", label: "积极观察", color: "bg-green-500", stocks: stocks.filter((s) => s.score >= 20 && s.score < 40) },
-              { range: "40-69", label: "观察", color: "bg-blue-400", stocks: stocks.filter((s) => s.score >= 40 && s.score < 70) },
-              { range: "70-84", label: "高风险偏多", color: "bg-amber-400", stocks: stocks.filter((s) => s.score >= 70 && s.score < 85) },
-              { range: "85-100", label: "高风险观察", color: "bg-red-500", stocks: stocks.filter((s) => s.score >= 85) },
-            ].map((bucket) => (
-              <div key={bucket.range} className="rounded-lg border border-rule bg-paper-2 p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className={`w-2.5 h-2.5 rounded-full ${bucket.color}`} />
-                  <span className="text-xs font-medium text-ink">{bucket.label}</span>
-                  <span className="text-[10px] text-muted">({bucket.range})</span>
-                </div>
-                <p className="text-lg font-bold text-ink">{bucket.stocks.length} 只</p>
-                <div className="mt-1 flex flex-wrap gap-1">
-                  {bucket.stocks.slice(0, 5).map((s: any) => (
-                    <span key={s.code} className="text-[10px] text-muted bg-panel px-1 py-0.5 rounded">
-                      {s.name}
-                    </span>
-                  ))}
-                  {bucket.stocks.length > 5 && (
-                    <span className="text-[10px] text-muted">+{bucket.stocks.length - 5}</span>
-                  )}
-                </div>
-              </div>
-            ))}
+      {/* 模拟组合盈亏 */}
+      <div className="rounded-lg border border-rule bg-panel p-4">
+        <h3 className="text-sm font-semibold text-ink mb-3">模拟组合表现</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <span className="text-xs text-muted">持仓数量</span>
+            <p className="text-lg font-semibold text-ink">{portfolioStats.holdings} 只</p>
+          </div>
+          <div>
+            <span className="text-xs text-muted">累计盈亏</span>
+            <p className={`text-lg font-semibold ${portfolioStats.totalPL >= 0 ? "text-green-600" : "text-red-600"}`}>
+              {portfolioStats.totalPL >= 0 ? "+" : ""}¥{portfolioStats.totalPL.toFixed(0)}
+            </p>
+          </div>
+          <div>
+            <span className="text-xs text-muted">收益率</span>
+            <p className={`text-lg font-semibold ${portfolioStats.totalPLPercent >= 0 ? "text-green-600" : "text-red-600"}`}>
+              {formatPct(portfolioStats.totalPLPercent)}
+            </p>
+          </div>
+          <div>
+            <span className="text-xs text-muted">策略</span>
+            <p className="text-lg font-semibold text-ink">积极观察 → 买入100股</p>
           </div>
         </div>
       </div>
