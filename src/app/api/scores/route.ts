@@ -11,6 +11,7 @@
 
 import { NextResponse } from "next/server";
 import { ScoringEngine } from "@/lib/scoringEngine";
+import { BayesianEngine } from "@/lib/bayesianEngine";
 
 // ========== 股票列表（75只） ==========
 
@@ -207,6 +208,16 @@ function computeAllScores(quotes: Record<string, any>): ScoreResult[] {
     );
     const suppliers = ScoringEngine.getSuppliersForIndustry(stock.industry);
 
+    // ===== 贝叶斯评分 =====
+    const specialRisk: Record<string, number> = {
+      "688256": 38, "688041": 35, "688981": 32, "300308": 28, "300502": 25,
+      "000988": 22, "688008": 20, "688037": 18, "002384": 16, "688627": 15,
+      "002074": 14, "601727": 12, "603986": 12, "000977": 10, "603019": 8,
+    };
+    const bayesian = BayesianEngine.calculate(
+      stock.industry, suppliers, specialRisk[stock.code] || 0, pe, changePercent, stock.code
+    );
+
     return {
       code: stock.code,
       name: stock.name,
@@ -221,6 +232,17 @@ function computeAllScores(quotes: Record<string, any>): ScoreResult[] {
       buySignal: score.buySignal,
       sellSignal: score.sellSignal,
       dimensions: score.dimensions,
+      // 贝叶斯指标
+      prior: bayesian.prior,
+      posterior: bayesian.posterior,
+      confidence: bayesian.confidence,
+      bottleneckType: bayesian.bottleneckType,
+      bottleneckStrength: bayesian.bottleneckStrength,
+      mispricing: bayesian.mispricing,
+      mispricingSignal: bayesian.mispricingSignal,
+      rotationScore: bayesian.rotationScore,
+      credibilityInterval: bayesian.credibilityInterval,
+      positionSize: bayesian.positionSize,
       suppliers: suppliers.map(s => ({
         name: s.name,
         ratio: s.ratio,
