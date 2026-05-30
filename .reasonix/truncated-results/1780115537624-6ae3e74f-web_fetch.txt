@@ -1,0 +1,435 @@
+AKShare 股票数据 &mdash; AKShare 1.18.64 文档
+https://akshare.akfamily.xyz/data/stock/stock.html
+
+<!DOCTYPE html>
+
+AKShare 股票数据 &mdash; AKShare 1.18.64 文档
+
+AKShare 数据字典
+
+AKShare 股票数据
+
+查看页面源码
+
+AKShare 股票数据
+
+A股
+
+股票市场总貌
+
+上海证券交易所
+
+接口: stock_sse_summary
+
+目标地址: http://www.sse.com.cn/market/stockdata/statistic/
+
+描述: 上海证券交易所-股票数据总貌
+
+限量: 单次返回最近交易日的股票数据总貌(当前交易日的数据需要交易所收盘后统计)
+
+输入参数
+
+名称
+类型
+描述
+
+-
+-
+-
+
+输出参数-实时行情数据
+
+名称
+类型
+描述
+
+项目
+object
+-
+
+股票
+object
+-
+
+科创板
+object
+-
+
+主板
+object
+-
+
+接口示例
+
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">akshare</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ak</span>
+
+<span class="n">stock_sse_summary_df</span> <span class="o">=</span> <span class="n">ak</span><span class="o">.</span><span class="n">stock_sse_summary</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">stock_sse_summary_df</span><span class="p">)</span>
+
+数据示例
+
+<span></span> <span class="n">项目</span> <span class="n">股票</span> <span class="n">科创板</span> <span class="n">主板</span>
+<span class="mi">0</span> <span class="n">流通股本</span> <span class="mf">40403.47</span> <span class="mf">413.63</span> <span class="mf">39989.84</span>
+<span class="mi">1</span> <span class="n">总市值</span> <span class="mf">516714.68</span> <span class="mf">55719.6</span> <span class="mf">460995.09</span>
+<span class="mi">2</span> <span class="n">平均市盈率</span> <span class="mf">17.92</span> <span class="mf">71.0</span> <span class="mf">16.51</span>
+<span class="mi">3</span> <span class="n">上市公司</span> <span class="mi">2036</span> <span class="mi">377</span> <span class="mi">1659</span>
+<span class="mi">4</span> <span class="n">上市股票</span> <span class="mi">2078</span> <span class="mi">377</span> <span class="mi">1701</span>
+<span class="mi">5</span> <span class="n">流通市值</span> <span class="mf">432772.13</span> <span class="mf">22274.3</span> <span class="mf">410497.83</span>
+<span class="mi">6</span> <span class="n">报告时间</span> <span class="mi">20211230</span> <span class="mi">20211230</span> <span class="mi">20211230</span>
+<span class="mi">8</span> <span class="n">总股本</span> <span class="mf">46234.03</span> <span class="mf">1211.5</span> <span class="mf">45022.54</span>
+
+深圳证券交易所
+
+证券类别统计
+
+接口: stock_szse_summary
+
+目标地址: http://www.szse.cn/market/overview/index.html
+
+描述: 深圳证券交易所-市场总貌-证券类别统计
+
+限量: 单次返回指定 date 的市场总貌数据-证券类别统计(当前交易日的数据需要交易所收盘后统计)
+
+输入参数
+
+名称
+类型
+描述
+
+date
+str
+date="20200619"; 当前交易日的数据需要交易所收盘后统计
+
+输出参数
+
+名称
+类型
+描述
+
+证券类别
+object
+-
+
+数量
+int64
+注意单位: 只
+
+成交金额
+float64
+注意单位: 元
+
+总市值
+float64
+-
+
+流通市值
+float64
+-
+
+接口示例
+
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">akshare</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ak</span>
+
+<span class="n">stock_szse_summary_df</span> <span class="o">=</span> <span class="n">ak</span><span class="o">.</span><span class="n">stock_szse_summary</span><span class="p">(</span><span class="n">date</span><span class="o">=</span><span class="s2">"20200619"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">stock_szse_summary_df</span><span class="p">)</span>
+
+数据示例
+
+<span></span> <span class="n">证券类别</span> <span class="n">数量</span> <span class="n">成交金额</span> <span class="n">总市值</span> <span class="n">流通市值</span>
+<span class="mi">0</span> <span class="n">股票</span> <span class="mi">2284</span> <span class="mf">4.647749e+11</span> <span class="mf">2.706514e+13</span> <span class="mf">2.104546e+13</span>
+<span class="mi">1</span> <span class="n">主板A股</span> <span class="mi">460</span> <span class="mf">9.775950e+10</span> <span class="mf">7.864787e+12</span> <span class="mf">6.943990e+12</span>
+<span class="mi">2</span> <span class="n">主板B股</span> <span class="mi">46</span> <span class="mf">8.626816e+07</span> <span class="mf">4.759658e+10</span> <span class="mf">4.706385e+10</span>
+<span class="mi">3</span> <span class="n">中小板</span> <span class="mi">960</span> <span class="mf">2.013526e+11</span> <span class="mf">1.130741e+13</span> <span class="mf">8.669555e+12</span>
+<span class="mi">4</span> <span class="n">创业板A股</span> <span class="mi">818</span> <span class="mf">1.655765e+11</span> <span class="mf">7.845345e+12</span> <span class="mf">5.384854e+12</span>
+<span class="mi">5</span> <span class="n">基金</span> <span class="mi">551</span> <span class="mf">1.362524e+10</span> <span class="mf">2.417277e+11</span> <span class="mf">2.417277e+11</span>
+<span class="mi">6</span> <span class="n">ETF</span> <span class="mi">100</span> <span class="mf">1.165436e+10</span> <span class="mf">1.628294e+11</span> <span class="mf">1.628294e+11</span>
+<span class="mi">7</span> <span class="n">LOF</span> <span class="mi">250</span> <span class="mf">7.335768e+08</span> <span class="mf">4.043156e+10</span> <span class="mf">4.043156e+10</span>
+<span class="mi">8</span> <span class="n">封闭式基金</span> <span class="mi">1</span> <span class="mf">5.527571e+05</span> <span class="mf">7.622440e+08</span> <span class="mf">7.622440e+08</span>
+<span class="mi">9</span> <span class="n">分级基金</span> <span class="mi">200</span> <span class="mf">1.236746e+09</span> <span class="mf">3.770451e+10</span> <span class="mf">3.770451e+10</span>
+<span class="mi">10</span> <span class="n">债券</span> <span class="mi">7174</span> <span class="mf">1.371389e+11</span> <span class="n">NaN</span> <span class="n">NaN</span>
+<span class="mi">11</span> <span class="n">债券现券</span> <span class="mi">6599</span> <span class="mf">2.911357e+10</span> <span class="mf">3.683881e+13</span> <span class="mf">1.823072e+12</span>
+<span class="mi">12</span> <span class="n">债券回购</span> <span class="mi">13</span> <span class="mf">1.054592e+11</span> <span class="n">NaN</span> <span class="n">NaN</span>
+<span class="mi">13</span> <span class="n">ABS</span> <span class="mi">562</span> <span class="mf">2.566134e+09</span> <span class="mf">4.849642e+11</span> <span class="mf">4.849642e+11</span>
+<span class="mi">14</span> <span class="n">期权</span> <span class="mi">108</span> <span class="mf">2.441560e+08</span> <span class="n">NaN</span> <span class="n">NaN</span>
+
+地区交易排序
+
+接口: stock_szse_area_summary
+
+目标地址: http://www.szse.cn/market/overview/index.html
+
+描述: 深圳证券交易所-市场总貌-地区交易排序
+
+限量: 单次返回指定 date 的市场总貌数据-地区交易排序数据
+
+输入参数
+
+名称
+类型
+描述
+
+date
+str
+date="202203"; 年月
+
+输出参数
+
+名称
+类型
+描述
+
+序号
+int64
+-
+
+地区
+object
+-
+
+总交易额
+float64
+注意单位: 元
+
+占市场
+float64
+注意单位: %
+
+股票交易额
+float64
+注意单位: 元
+
+基金交易额
+float64
+注意单位: 元
+
+债券交易额
+float64
+注意单位: 元
+
+2025年添加优先股交易额与期权交易额
+
+名称
+类型
+描述
+
+序号
+int64
+-
+
+地区
+object
+-
+
+总交易额
+float64
+注意单位: 元
+
+占市场
+float64
+注意单位: %
+
+股票交易额
+float64
+注意单位: 元
+
+基金交易额
+float64
+注意单位: 元
+
+债券交易额
+float64
+注意单位: 元
+
+优先股交易额
+float64
+注意单位: 元
+
+期权交易额
+float64
+注意单位: 元
+
+接口示例
+
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">akshare</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ak</span>
+
+<span class="n">stock_szse_area_summary_df</span> <span class="o">=</span> <span class="n">ak</span><span class="o">.</span><span class="n">stock_szse_area_summary</span><span class="p">(</span><span class="n">date</span><span class="o">=</span><span class="s2">"202412"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">stock_szse_area_summary_df</span><span class="p">)</span>
+
+数据示例
+
+<span></span> <span class="n">序号</span> <span class="n">地区</span> <span class="n">总交易额</span> <span class="n">占市场</span> <span class="n">股票交易额</span> <span class="n">基金交易额</span> <span class="n">债券交易额</span>
+<span class="mi">0</span> <span class="mi">1</span> <span class="n">上海</span> <span class="mf">9.487525e+12</span> <span class="mf">16.349</span> <span class="mf">5.951120e+12</span> <span class="mf">4.247199e+11</span> <span class="mf">3.111261e+12</span>
+<span class="mi">1</span> <span class="mi">2</span> <span class="n">深圳</span> <span class="mf">7.224594e+12</span> <span class="mf">12.450</span> <span class="mf">4.630469e+12</span> <span class="mf">3.935335e+11</span> <span class="mf">2.200312e+12</span>
+<span class="mi">2</span> <span class="mi">3</span> <span class="n">浙江</span> <span class="mf">5.290404e+12</span> <span class="mf">9.117</span> <span class="mf">4.360136e+12</span> <span class="mf">1.182085e+11</span> <span class="mf">8.120595e+11</span>
+<span class="mi">3</span> <span class="mi">4</span> <span class="n">北京</span> <span class="mf">5.233418e+12</span> <span class="mf">9.018</span> <span class="mf">3.416063e+12</span> <span class="mf">2.662883e+11</span> <span class="mf">1.550712e+12</span>
+<span class="mi">4</span> <span class="mi">5</span> <span class="n">江苏</span> <span class="mf">4.293698e+12</span> <span class="mf">7.399</span> <span class="mf">3.172531e+12</span> <span class="mf">2.320341e+11</span> <span class="mf">8.891332e+11</span>
+<span class="mi">5</span> <span class="mi">6</span> <span class="n">广东</span> <span class="mf">2.270127e+12</span> <span class="mf">3.912</span> <span class="mf">1.901562e+12</span> <span class="mf">4.564880e+10</span> <span class="mf">3.229161e+11</span>
+<span class="mi">6</span> <span class="mi">7</span> <span class="n">福建</span> <span class="mf">2.253878e+12</span> <span class="mf">3.884</span> <span class="mf">1.623762e+12</span> <span class="mf">6.501030e+10</span> <span class="mf">5.651060e+11</span>
+<span class="mi">7</span> <span class="mi">8</span> <span class="n">西藏</span> <span class="mf">2.206716e+12</span> <span class="mf">3.803</span> <span class="mf">1.905686e+12</span> <span class="mf">7.203090e+10</span> <span class="mf">2.289994e+11</span>
+<span class="mi">8</span> <span class="mi">9</span> <span class="n">广州</span> <span class="mf">2.197150e+12</span> <span class="mf">3.786</span> <span class="mf">1.463381e+12</span> <span class="mf">1.648445e+11</span> <span class="mf">5.689248e+11</span>
+<span class="mi">9</span> <span class="mi">10</span> <span class="n">境外地区</span> <span class="mf">1.984124e+12</span> <span class="mf">3.419</span> <span class="mf">1.970216e+12</span> <span class="mf">1.390804e+10</span> <span class="mf">0.000000e+00</span>
+<span class="mi">10</span> <span class="mi">11</span> <span class="n">四川</span> <span class="mf">1.930677e+12</span> <span class="mf">3.327</span> <span class="mf">1.435194e+12</span> <span class="mf">4.522977e+10</span> <span class="mf">4.502540e+11</span>
+<span class="mi">11</span> <span class="mi">12</span> <span class="n">湖北</span> <span class="mf">1.696401e+12</span> <span class="mf">2.923</span> <span class="mf">1.158206e+12</span> <span class="mf">4.017641e+10</span> <span class="mf">4.980182e+11</span>
+<span class="mi">12</span> <span class="mi">13</span> <span class="n">山东</span> <span class="mf">1.682048e+12</span> <span class="mf">2.899</span> <span class="mf">1.327438e+12</span> <span class="mf">5.365067e+10</span> <span class="mf">3.009584e+11</span>
+<span class="mi">13</span> <span class="mi">14</span> <span class="n">湖南</span> <span class="mf">1.219426e+12</span> <span class="mf">2.101</span> <span class="mf">9.349975e+11</span> <span class="mf">1.289489e+11</span> <span class="mf">1.554799e+11</span>
+<span class="mi">14</span> <span class="mi">15</span> <span class="n">河南</span> <span class="mf">9.646033e+11</span> <span class="mf">1.662</span> <span class="mf">7.822876e+11</span> <span class="mf">1.960984e+10</span> <span class="mf">1.627058e+11</span>
+<span class="mi">15</span> <span class="mi">16</span> <span class="n">安徽</span> <span class="mf">9.465931e+11</span> <span class="mf">1.631</span> <span class="mf">7.593304e+11</span> <span class="mf">1.469990e+10</span> <span class="mf">1.725628e+11</span>
+<span class="mi">16</span> <span class="mi">17</span> <span class="n">江西</span> <span class="mf">9.396623e+11</span> <span class="mf">1.619</span> <span class="mf">6.881626e+11</span> <span class="mf">1.311965e+10</span> <span class="mf">2.383801e+11</span>
+<span class="mi">17</span> <span class="mi">18</span> <span class="n">陕西</span> <span class="mf">8.237220e+11</span> <span class="mf">1.419</span> <span class="mf">6.012667e+11</span> <span class="mf">1.214389e+10</span> <span class="mf">2.103114e+11</span>
+<span class="mi">18</span> <span class="mi">19</span> <span class="n">重庆</span> <span class="mf">7.391354e+11</span> <span class="mf">1.274</span> <span class="mf">5.619510e+11</span> <span class="mf">1.890194e+10</span> <span class="mf">1.582824e+11</span>
+<span class="mi">19</span> <span class="mi">20</span> <span class="n">辽宁</span> <span class="mf">6.931954e+11</span> <span class="mf">1.195</span> <span class="mf">5.449654e+11</span> <span class="mf">1.301426e+10</span> <span class="mf">1.352158e+11</span>
+<span class="mi">20</span> <span class="mi">21</span> <span class="n">河北</span> <span class="mf">5.669541e+11</span> <span class="mf">0.977</span> <span class="mf">4.501636e+11</span> <span class="mf">1.233615e+10</span> <span class="mf">1.044544e+11</span>
+<span class="mi">21</span> <span class="mi">22</span> <span class="n">广西</span> <span class="mf">4.686531e+11</span> <span class="mf">0.808</span> <span class="mf">3.364304e+11</span> <span class="mf">7.822388e+09</span> <span class="mf">1.244003e+11</span>
+<span class="mi">22</span> <span class="mi">23</span> <span class="n">山西</span> <span class="mf">4.365001e+11</span> <span class="mf">0.752</span> <span class="mf">3.284633e+11</span> <span class="mf">1.062648e+10</span> <span class="mf">9.741041e+10</span>
+<span class="mi">23</span> <span class="mi">24</span> <span class="n">天津</span> <span class="mf">4.343598e+11</span> <span class="mf">0.749</span> <span class="mf">3.184588e+11</span> <span class="mf">2.337921e+10</span> <span class="mf">9.252183e+10</span>
+<span class="mi">24</span> <span class="mi">25</span> <span class="n">黑龙江</span> <span class="mf">3.168352e+11</span> <span class="mf">0.546</span> <span class="mf">2.459350e+11</span> <span class="mf">1.226023e+10</span> <span class="mf">5.863994e+10</span>
+<span class="mi">25</span> <span class="mi">26</span> <span class="n">吉林</span> <span class="mf">2.993509e+11</span> <span class="mf">0.516</span> <span class="mf">1.989160e+11</span> <span class="mf">1.141372e+10</span> <span class="mf">8.902121e+10</span>
+<span class="mi">26</span> <span class="mi">27</span> <span class="n">云南</span> <span class="mf">2.849838e+11</span> <span class="mf">0.491</span> <span class="mf">2.304918e+11</span> <span class="mf">5.161953e+09</span> <span class="mf">4.933003e+10</span>
+<span class="mi">27</span> <span class="mi">28</span> <span class="n">贵州</span> <span class="mf">2.687234e+11</span> <span class="mf">0.463</span> <span class="mf">1.523773e+11</span> <span class="mf">7.489895e+09</span> <span class="mf">1.088562e+11</span>
+<span class="mi">28</span> <span class="mi">29</span> <span class="n">新疆</span> <span class="mf">2.012105e+11</span> <span class="mf">0.347</span> <span class="mf">1.723385e+11</span> <span class="mf">2.794241e+09</span> <span class="mf">2.607780e+10</span>
+<span class="mi">29</span> <span class="mi">30</span> <span class="n">海南</span> <span class="mf">1.803439e+11</span> <span class="mf">0.311</span> <span class="mf">1.573740e+11</span> <span class="mf">4.553905e+09</span> <span class="mf">1.841596e+10</span>
+<span class="mi">30</span> <span class="mi">31</span> <span class="n">甘肃</span> <span class="mf">1.739891e+11</span> <span class="mf">0.300</span> <span class="mf">1.526379e+11</span> <span class="mf">2.707475e+09</span> <span class="mf">1.864376e+10</span>
+<span class="mi">31</span> <span class="mi">32</span> <span class="n">内蒙古</span> <span class="mf">1.694187e+11</span> <span class="mf">0.292</span> <span class="mf">1.277484e+11</span> <span class="mf">2.512480e+09</span> <span class="mf">3.915781e+10</span>
+<span class="mi">32</span> <span class="mi">33</span> <span class="n">宁夏</span> <span class="mf">1.117968e+11</span> <span class="mf">0.193</span> <span class="mf">9.845570e+10</span> <span class="mf">2.297211e+09</span> <span class="mf">1.104391e+10</span>
+<span class="mi">33</span> <span class="mi">34</span> <span class="n">青海</span> <span class="mf">3.967756e+10</span> <span class="mf">0.068</span> <span class="mf">2.884644e+10</span> <span class="mf">4.814743e+08</span> <span class="mf">1.034965e+10</span>
+
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">akshare</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ak</span>
+
+<span class="n">stock_szse_area_summary_df</span> <span class="o">=</span> <span class="n">ak</span><span class="o">.</span><span class="n">stock_szse_area_summary</span><span class="p">(</span><span class="n">date</span><span class="o">=</span><span class="s2">"202508"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">stock_szse_area_summary_df</span><span class="p">)</span>
+
+<span></span> <span class="n">序号</span> <span class="n">地区</span> <span class="n">总交易额</span> <span class="o">...</span> <span class="n">债券交易额</span> <span class="n">优先股交易额</span> <span class="n">期权交易额</span>
+<span class="mi">0</span> <span class="mi">1</span> <span class="n">上海</span> <span class="mf">6.371903e+12</span> <span class="o">...</span> <span class="mf">2.220920e+12</span> <span class="mf">876893300.0</span> <span class="mf">1.243253e+10</span>
+<span class="mi">1</span> <span class="mi">2</span> <span class="n">深圳</span> <span class="mf">5.121851e+12</span> <span class="o">...</span> <span class="mf">1.769490e+12</span> <span class="mf">0.0</span> <span class="mf">4.254038e+09</span>
+<span class="mi">2</span> <span class="mi">3</span> <span class="n">北京</span> <span class="mf">3.649473e+12</span> <span class="o">...</span> <span class="mf">1.204900e+12</span> <span class="mf">876893300.0</span> <span class="mf">2.817363e+09</span>
+<span class="mi">3</span> <span class="mi">4</span> <span class="n">浙江</span> <span class="mf">3.339664e+12</span> <span class="o">...</span> <span class="mf">6.396964e+11</span> <span class="mf">0.0</span> <span class="mf">1.360305e+09</span>
+<span class="mi">4</span> <span class="mi">5</span> <span class="n">江苏</span> <span class="mf">2.872589e+12</span> <span class="o">...</span> <span class="mf">7.602330e+11</span> <span class="mf">0.0</span> <span class="mf">1.447631e+09</span>
+<span class="mi">5</span> <span class="mi">6</span> <span class="n">境外地区</span> <span class="mf">1.634432e+12</span> <span class="o">...</span> <span class="mf">0.000000e+00</span> <span class="mf">0.0</span> <span class="mf">0.000000e+00</span>
+<span class="mi">6</span> <span class="mi">7</span> <span class="n">广州</span> <span class="mf">1.500926e+12</span> <span class="o">...</span> <span class="mf">4.780673e+11</span> <span class="mf">8067200.0</span> <span class="mf">1.804676e+09</span>
+<span class="mi">7</span> <span class="mi">8</span> <span class="n">福建</span> <span class="mf">1.493353e+12</span> <span class="o">...</span> <span class="mf">4.740214e+11</span> <span class="mf">0.0</span> <span class="mf">7.236936e+08</span>
+<span class="mi">8</span> <span class="mi">9</span> <span class="n">西藏</span> <span class="mf">1.370016e+12</span> <span class="o">...</span> <span class="mf">1.646981e+11</span> <span class="mf">0.0</span> <span class="mf">1.294816e+08</span>
+<span class="mi">9</span> <span class="mi">10</span> <span class="n">广东</span> <span class="mf">1.353391e+12</span> <span class="o">...</span> <span class="mf">2.476401e+11</span> <span class="mf">0.0</span> <span class="mf">4.377234e+08</span>
+<span class="mi">10</span> <span class="mi">11</span> <span class="n">四川</span> <span class="mf">1.200289e+12</span> <span class="o">...</span> <span class="mf">3.341463e+11</span> <span class="mf">0.0</span> <span class="mf">2.535704e+08</span>
+<span class="mi">11</span> <span class="mi">12</span> <span class="n">湖北</span> <span class="mf">1.185315e+12</span> <span class="o">...</span> <span class="mf">4.680616e+11</span> <span class="mf">0.0</span> <span class="mf">1.431620e+08</span>
+<span class="mi">12</span> <span class="mi">13</span> <span class="n">山东</span> <span class="mf">1.076383e+12</span> <span class="o">...</span> <span class="mf">2.650255e+11</span> <span class="mf">0.0</span> <span class="mf">1.963902e+09</span>
+<span class="mi">13</span> <span class="mi">14</span> <span class="n">湖南</span> <span class="mf">7.683324e+11</span> <span class="o">...</span> <span class="mf">1.377730e+11</span> <span class="mf">0.0</span> <span class="mf">1.828164e+08</span>
+<span class="mi">14</span> <span class="mi">15</span> <span class="n">江西</span> <span class="mf">6.164555e+11</span> <span class="o">...</span> <span class="mf">2.175697e+11</span> <span class="mf">0.0</span> <span class="mf">7.712560e+07</span>
+<span class="mi">15</span> <span class="mi">16</span> <span class="n">河南</span> <span class="mf">5.856996e+11</span> <span class="o">...</span> <span class="mf">1.258403e+11</span> <span class="mf">0.0</span> <span class="mf">1.469152e+08</span>
+<span class="mi">16</span> <span class="mi">17</span> <span class="n">安徽</span> <span class="mf">5.759514e+11</span> <span class="o">...</span> <span class="mf">1.272217e+11</span> <span class="mf">0.0</span> <span class="mf">1.640928e+08</span>
+<span class="mi">17</span> <span class="mi">18</span> <span class="n">陕西</span> <span class="mf">5.025968e+11</span> <span class="o">...</span> <span class="mf">1.510291e+11</span> <span class="mf">0.0</span> <span class="mf">1.016968e+08</span>
+<span class="mi">18</span> <span class="mi">19</span> <span class="n">重庆</span> <span class="mf">4.503018e+11</span> <span class="o">...</span> <span class="mf">1.099315e+11</span> <span class="mf">0.0</span> <span class="mf">1.190079e+08</span>
+<span class="mi">19</span> <span class="mi">20</span> <span class="n">辽宁</span> <span class="mf">4.321530e+11</span> <span class="o">...</span> <span class="mf">1.090213e+11</span> <span class="mf">0.0</span> <span class="mf">1.779504e+08</span>
+<span class="mi">20</span> <span class="mi">21</span> <span class="n">河北</span> <span class="mf">3.498134e+11</span> <span class="o">...</span> <span class="mf">8.627298e+10</span> <span class="mf">0.0</span> <span class="mf">1.030772e+08</span>
+<span class="mi">21</span> <span class="mi">22</span> <span class="n">广西</span> <span class="mf">3.058458e+11</span> <span class="o">...</span> <span class="mf">9.918531e+10</span> <span class="mf">0.0</span> <span class="mf">1.234911e+08</span>
+<span class="mi">22</span> <span class="mi">23</span> <span class="n">天津</span> <span class="mf">2.745559e+11</span> <span class="o">...</span> <span class="mf">7.141631e+10</span> <span class="mf">0.0</span> <span class="mf">1.061408e+08</span>
+<span class="mi">23</span> <span class="mi">24</span> <span class="n">山西</span> <span class="mf">2.727539e+11</span> <span class="o">...</span> <span class="mf">6.757100e+10</span> <span class="mf">0.0</span> <span class="mf">3.207566e+07</span>
+<span class="mi">24</span> <span class="mi">25</span> <span class="n">贵州</span> <span class="mf">2.045149e+11</span> <span class="o">...</span> <span class="mf">9.961597e+10</span> <span class="mf">0.0</span> <span class="mf">3.725579e+07</span>
+<span class="mi">25</span> <span class="mi">26</span> <span class="n">吉林</span> <span class="mf">1.972995e+11</span> <span class="o">...</span> <span class="mf">7.551653e+10</span> <span class="mf">0.0</span> <span class="mf">6.118616e+07</span>
+<span class="mi">26</span> <span class="mi">27</span> <span class="n">黑龙江</span> <span class="mf">1.903182e+11</span> <span class="o">...</span> <span class="mf">4.610176e+10</span> <span class="mf">0.0</span> <span class="mf">5.380192e+07</span>
+<span class="mi">27</span> <span class="mi">28</span> <span class="n">云南</span> <span class="mf">1.724363e+11</span> <span class="o">...</span> <span class="mf">3.210926e+10</span> <span class="mf">0.0</span> <span class="mf">1.397156e+08</span>
+<span class="mi">28</span> <span class="mi">29</span> <span class="n">新疆</span> <span class="mf">1.201365e+11</span> <span class="o">...</span> <span class="mf">2.366439e+10</span> <span class="mf">0.0</span> <span class="mf">2.407912e+07</span>
+<span class="mi">29</span> <span class="mi">30</span> <span class="n">内蒙古</span> <span class="mf">1.122930e+11</span> <span class="o">...</span> <span class="mf">3.212444e+10</span> <span class="mf">0.0</span> <span class="mf">4.740066e+07</span>
+<span class="mi">30</span> <span class="mi">31</span> <span class="n">海南</span> <span class="mf">1.072153e+11</span> <span class="o">...</span> <span class="mf">1.562485e+10</span> <span class="mf">0.0</span> <span class="mf">9.121949e+06</span>
+<span class="mi">31</span> <span class="mi">32</span> <span class="n">甘肃</span> <span class="mf">1.034123e+11</span> <span class="o">...</span> <span class="mf">1.490509e+10</span> <span class="mf">0.0</span> <span class="mf">3.174230e+07</span>
+<span class="mi">32</span> <span class="mi">33</span> <span class="n">宁夏</span> <span class="mf">6.513347e+10</span> <span class="o">...</span> <span class="mf">8.624815e+09</span> <span class="mf">0.0</span> <span class="mf">1.210827e+07</span>
+<span class="mi">33</span> <span class="mi">34</span> <span class="n">青海</span> <span class="mf">2.453409e+10</span> <span class="o">...</span> <span class="mf">6.640867e+09</span> <span class="mf">0.0</span> <span class="mf">2.349068e+06</span>
+
+
+
+股票行业成交
+
+接口: stock_szse_sector_summary
+
+目标地址: http://docs.static.szse.cn/www/market/periodical/month/W020220511355248518608.html
+
+描述: 深圳证券交易所-统计资料-股票行业成交数据
+
+限量: 单次返回指定 symbol 和 date 的统计资料-股票行业成交数据
+
+输入参数
+
+名称
+类型
+描述
+
+symbol
+str
+symbol="当月"; choice of {"当月", "当年"}
+
+date
+str
+date="202501"; 年月
+
+输出参数
+
+名称
+类型
+描述
+
+项目名称
+object
+-
+
+项目名称-英文
+object
+-
+
+交易天数
+int64
+-
+
+成交金额-人民币元
+int64
+
+成交金额-占总计
+float64
+注意单位: %
+
+成交股数-股数
+int64
+-
+
+成交股数-占总计
+float64
+注意单位: %
+
+成交笔数-笔
+int64
+-
+
+成交笔数-占总计
+float64
+注意单位: %
+
+接口示例
+
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">akshare</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ak</span>
+
+<span class="n">stock_szse_sector_summary_df</span> <span class="o">=</span> <span class="n">ak</span><span class="o">.</span><span class="n">stock_szse_sector_summary</span><span class="p">(</span><span class="n">symbol</span><span class="o">=</span><span class="s2">"当年"</span><span class="p">,</span> <span class="n">date</span><span class="o">=</span><span class="s2">"202501"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">stock_szse_sector_summary_df</span><span class="p">)</span>
+
+数据示例
+
+<span></span> <span class="n">项目名称</span> <span class="n">项目名称</span><span class="o">-</span><span class="n">英文</span> <span class="n">交易天数</span> <span class="o">...</span> <span class="n">成交股数</span><span class="o">-</span><span class="n">占总计</span> <span class="n">成交笔数</span><span class="o">-</span><span class="n">笔</span> <span class="n">成交笔数</span><span class="o">-</span><span class="n">占总计</span>
+<span class="mi">0</span> <span class="n">合计</span> <span class="n">Total</span> <span class="mi">18</span> <span class="o">...</span> <span class="mf">100.00</span> <span class="mi">1072706301</span> <span class="mf">100.00</span>
+<span class="mi">1</span> <span class="n">农林牧渔</span> <span class="n">Agriculture</span> <span class="mi">18</span> <span class="o">...</span> <span class="mf">0.85</span> <span class="mi">7661044</span> <span class="mf">0.71</span>
+<span class="mi">2</span> <span class="n">采矿业</span> <span class="n">Mining</span> <span class="mi">18</span> <span class="o">...</span> <span class="mf">0.90</span> <span class="mi">9355248</span> <span class="mf">0.87</span>
+<span class="mi">3</span> <span class="n">制造业</span> <span class="n">Manufacturing</span> <span class="mi">18</span> <span class="o">...</span> <span class="mf">59.75</span> <span class="mi">715973899</span> <span class="mf">66.74</span>
+<span class="mi">4</span> <span class="n">水电煤气</span> <span class="n">Utilities</span> <span class="mi">18</span> <span class="o">...</span> <span class="mf">1.47</span> <span class="mi">12802444</span> <span class="mf">1.19</span>
+<span class="mi">5</span> <span class="n">建筑业</span> <span class="n">Construction</span> <span class="mi">18</span> <span class="o">...</span> <span class="mf">1.39</span> <span class="mi">10222345</span> <span class="mf">0.95</span>
+<span class="mi">6</span> <span class="n">批发零售</span> <span class="n">Wholesale</span> <span class="o">&</span> <span class="n">Retail</span> <span class="mi">18</span> <span class="o">...</span> <span class="mf">4.73</span> <span class="mi">40706994</span> <span class="mf">3.79</span>
+<span class="mi">7</span> <span class="n">运输仓储</span> <span class="n">Transportation</span> <span class="mi">18</span> <span class="o">...</span> <span class="mf">0.99</span> <span class="mi">11426446</span> <span class="mf">1.07</span>
+<span class="mi">8</span> <span class="n">住宿餐饮</span> <span class="n">Hotels</span> <span class="o">&</span> <span class="n">Catering</span> <span class="mi">18</span> <span class="o">...</span> <span class="mf">0.19</span> <span class="mi">1728478</span> <span class="mf">0.16</span>
+<span class="mi">9</span> <span class="n">信息技术</span> <span class="n">IT</span> <span class="mi">18</span> <span class="o">...</span> <span class="mf">11.73</span> <span class="mi">137478307</span> <span class="mf">12.82</span>
+<span class="mi">10</span> <span class="n">金融业</span> <span class="n">Finance</span> <span class="mi">18</span> <span class="o">...</span> <span class="mf">3.76</span> <span class="mi">31633210</span> <span class="mf">2.95</span>
+<span class="mi">11</span> <span class="n">房地产</span> <span class="n">Real</span> <span class="n">Estate</span> <span class="mi">18</span> <span class="o">...</span> <span class="mf">2.88</span> <span class="mi">13878880</span> <span class="mf">1.29</span>
+<span class="mi">12</span> <span class="n">商务服务</span> <span class="n">Business</span> <span class="n">Support</span> <span class="mi">18</span> <span class="o">...</span> <span class="mf">6.48</span> <span class="mi">38310245</span> <span class="mf">3.57</span>
+<span class="mi">13</span> <span class="n">科研服务</span> <span class="n">Research</span> <span class="o">&</span> <span class="n">Development</span> <span class="mi">18</span> <span class="o">...</span> <span class="mf">0.63</span> <span class="mi">10972681</span> <span class="mf">1.02</span>
+<span class="mi">14</span> <span class="n">公共环保</span> <span class="n">Environmental</span> <span class="n">Protection</span> <span class="mi">18</span> <span class="o">...</span> <span class="mf">1.61</span> <span class="mi">10919804</span> <span class="mf">1.02</span>
+<span class="mi">15</span> <span class="n">居民服务</span> <span class="n">Resident</span> <span class="n">Services</span> <span class="mi">18</span> <span class="o">...</span> <span class="mf">0.01</span> <span class="mi">217920</span> <span class="mf">0.02</span>
+<span class="mi">16</span> <span class="n">教育</span> <span class="n">Education</span> <span class="mi">18</span> <span class="o">...</span> <span class="mf">0.64</span> <span class="mi">3040949</span> <span class="mf">0.28</span>
+<span class="mi">17</span> <span class="n">卫生</span> <span class="n">Public</span> <span class="n">Health</span> <span class="mi">18</span> <span class="o">...</span> <span class="mf">0.51</span> <span class="mi">4706600</span> <span class="mf">0.44</span>
+<span class="mi">18</span> <span class="n">文化传播</span> <span class="n">Media</span> <span class="mi">18</span> <span class="o">...</span> <span class="mf">1.33</span> <span class="mi">10017645</span> <span class="mf">0.93</span>
+<span class="mi">19</span> <span class="n">综合</span> <span class="n">Conglomerates</span> <span class="mi">18<
+
+[… truncated 2209871 chars …]
