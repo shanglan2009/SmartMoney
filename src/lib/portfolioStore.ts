@@ -257,10 +257,8 @@ export function calculateHoldings(
   }
 
   const totalAssets = totalMarketValue + state.cash;
-  const totalPL = totalMarketValue - (state.totalDeposited - state.cash + state.cash);
-  // Actually: totalPL = totalMarketValue - totalCost (the cost of current holdings)
-  // The overall P&L = (current holdings market value + cash) - totalDeposited
-  const overallPL = totalAssets - state.totalDeposited;
+  // 累计盈亏 = 总资产 - 总投入（包含已实现和未实现盈亏）
+  const totalPL = totalAssets - state.totalDeposited;
 
   return {
     holdings: holdings.sort((a, b) => b.marketValue - a.marketValue),
@@ -268,8 +266,8 @@ export function calculateHoldings(
       totalMarketValue: Math.round(totalMarketValue * 100) / 100,
       totalCost: Math.round(totalCost * 100) / 100,
       totalPL: Math.round(totalPL * 100) / 100,
-      totalPLPercent: totalCost > 0
-        ? Math.round((totalPL / totalCost) * 10000) / 100
+      totalPLPercent: state.totalDeposited > 0
+        ? Math.round((totalPL / state.totalDeposited) * 10000) / 100
         : 0,
       dailyPL: Math.round(totalDailyPL * 100) / 100,
       dailyPLPercent: totalDailyCost > 0
