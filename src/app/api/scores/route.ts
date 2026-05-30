@@ -123,6 +123,9 @@ interface ScoreResult {
   rating: string;
   dimensions: { name: string; score: number; weight: number }[];
   suppliers: { name: string; ratio: number; industry?: string; financialHealth?: string }[];
+  action: string;
+  buySignal: number;
+  sellSignal: number;
   updatedAt: string;
 }
 
@@ -193,6 +196,9 @@ function computeAllScores(quotes: Record<string, any>): ScoreResult[] {
       pe,
       score: score.overall,
       rating: score.rating,
+      action: score.action,
+      buySignal: score.buySignal,
+      sellSignal: score.sellSignal,
       dimensions: score.dimensions,
       suppliers: suppliers.map(s => ({
         name: s.name,
