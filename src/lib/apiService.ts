@@ -19,6 +19,9 @@ export interface LiveStockItem {
   category: string;
   score: number;
   rating: RatingLevel;
+  action: string;
+  buySignal: number;
+  sellSignal: number;
   price: number | null;
   changePercent: number | null;
   priceChange: string;
@@ -74,6 +77,9 @@ export async function getLiveStockList(): Promise<LiveStockItem[]> {
         category: s.category,
         score: s.score,
         rating: s.rating as RatingLevel,
+        action: s.action || "",
+        buySignal: s.buySignal || 0,
+        sellSignal: s.sellSignal || 0,
         price: s.price,
         changePercent: s.changePercent,
         priceChange: s.changePercent !== null

@@ -8,9 +8,11 @@ import type { LiveStockItem } from "@/lib/apiService";
 import type { RatingLevel } from "@/lib/types";
 import { RATING_ORDER } from "@/lib/types";
 import RatingBadge from "@/components/RatingBadge";
+import ActionBadge from "@/components/ActionBadge";
 
-const ratingFilters: { label: string; value: RatingLevel | "all" }[] = [
+const ratingFilters: { label: string; value: string }[] = [
   { label: "全部", value: "all" },
+  { label: "🔥 适合买入", value: "action_buy" },
   { label: "高风险观察", value: "高风险观察" },
   { label: "高风险偏多", value: "高风险偏多" },
   { label: "观察", value: "观察" },
@@ -19,7 +21,7 @@ const ratingFilters: { label: string; value: RatingLevel | "all" }[] = [
 ];
 
 export default function HomePage() {
-  const [activeFilter, setActiveFilter] = useState<RatingLevel | "all">("all");
+  const [activeFilter, setActiveFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"score" | "name" | "change">("score");
   const [allStocks, setAllStocks] = useState<LiveStockItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +43,9 @@ export default function HomePage() {
   }, []);
 
   const filtered = useMemo(() => {
-    let list = activeFilter === "all" ? allStocks : allStocks.filter((s) => s.rating === activeFilter);
+    let list = activeFilter === "all" ? allStocks
+      : activeFilter === "action_buy" ? allStocks.filter((s) => s.action === "适合买入" || s.action === "积极加仓")
+      : allStocks.filter((s) => s.rating === activeFilter);
     return [...list].sort((a, b) => {
       if (sortBy === "score") return b.score - a.score;
       if (sortBy === "name") return a.name.localeCompare(b.name);
@@ -152,12 +156,13 @@ export default function HomePage() {
       {/* Stock List Table (Serenity style grid) */}
       <div className="rounded-lg border border-rule bg-panel overflow-hidden">
         {/* Header */}
-        <div className="grid grid-cols-[2rem_minmax(4rem,0.7fr)_minmax(0,1fr)_auto_auto_auto_auto] gap-3 px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide border-b border-rule bg-paper-2">
+        <div className="grid grid-cols-[2rem_minmax(4rem,0.7fr)_minmax(0,1fr)_auto_auto_auto_auto_auto] gap-3 px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide border-b border-rule bg-paper-2">
           <span></span>
           <span>代码</span>
           <span>名称</span>
           <span className="text-right cursor-pointer" onClick={() => setSortBy("score")}>评分</span>
           <span className="text-right">评级</span>
+          <span className="text-right">建议</span>
           <span className="text-right cursor-pointer" onClick={() => setSortBy("change")}>涨跌幅</span>
           <span className="text-right">信号</span>
         </div>
@@ -168,7 +173,7 @@ export default function HomePage() {
             <Link
               key={stock.code}
               href={`/stock/${stock.code}`}
-              className="grid grid-cols-[2rem_minmax(4rem,0.7fr)_minmax(0,1fr)_auto_auto_auto_1fr] gap-3 px-4 py-2.5 items-center hover:bg-paper-3 transition-colors"
+              className="grid grid-cols-[2rem_minmax(4rem,0.7fr)_minmax(0,1fr)_auto_auto_auto_auto_1fr] gap-3 px-4 py-2.5 items-center hover:bg-paper-3 transition-colors"
             >
               <span className="flex h-6 w-6 items-center justify-center rounded bg-paper-3 text-[10px] font-semibold text-muted">
                 {stock.industry.slice(0, 2)}
@@ -183,6 +188,9 @@ export default function HomePage() {
               </span>
               <div className="text-right">
                 <RatingBadge rating={stock.rating} size="sm" />
+              </div>
+              <div className="text-right">
+                <ActionBadge action={stock.action} />
               </div>
               <span className={`text-sm font-medium text-right ${
                 stock.priceChange.startsWith("+") ? "text-green-600" : "text-red-600"
