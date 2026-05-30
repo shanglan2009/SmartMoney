@@ -26,57 +26,67 @@ export default function PortfolioPage() {
     try {
       // 1. 获取最新评分数据
       const res = await fetch(`/api/scores${force ? "?refresh=true" : ""}`, {
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(15000),
       });
+      if (!res.ok) {
+        throw new Error(`API返回 ${res.status}`);
+      }
       const data = await res.json();
       const stocks = data.stocks || [];
+      if (stocks.length === 0) {
+        throw new Error("API返回空数据");
+      }
 
       // 2. 找出积极观察列表
       const positiveWatch = stocks
         .filter((s: any) => s.rating === "积极观察")
         .map((s: any) => s.code);
 
+      console.log(`[组合] 积极观察 ${positiveWatch.length} 只, 共 ${stocks.length} 只股票`);
+
       // 3. 构建价格映射
       const prices: Record<string, { price: number; name: string }> = {};
       stocks.forEach((s: any) => {
-        if (s.price) {
+        if (s.price && s.price > 0) {
           prices[s.code] = { price: s.price, name: s.name };
         }
       });
 
-      // 4. 获取上一次的价格作为基准（用于日盈亏计算）
-      const prevState = loadPortfolio();
-      const prevPrices: Record<string, { price: number; name: string }> = {};
-      if (prevState.lastUpdateDate) {
-        // 用当前价格近似（精细的日盈亏需要前收盘价，此处暂用成本价）
-      }
-
-      // 5. 执行买入/卖出逻辑
+      // 4. 执行买入/卖出逻辑
       const result = updatePortfolio(positiveWatch, prices);
 
-      // 6. 计算持仓盈亏
+      // 5. 计算持仓盈亏
       const { holdings: h, summary: s } = calculateHoldings(prices);
 
       setHoldings(h);
       setSummary(s);
       setTrades(result.state.trades.slice().reverse().slice(0, 50));
 
-      // 7. 显示交易消息
+      // 6. 显示交易消息
       const msgs: string[] = [];
       if (result.newBuys.length > 0) {
-        msgs.push(`🟢 买入 ${result.newBuys.map(b => `${b.name}(${b.price}元)`)}, 各100股`);
+        msgs.push(`🟢 买入 ${result.newBuys.map(b => `${b.name}(${b.price}元)`).join(", ")}, 各100股`);
       }
       if (result.newSells.length > 0) {
-        msgs.push(`🔴 卖出 ${result.newSells.map(b => `${b.name}(盈亏${b.pl > 0 ? "+" : ""}${b.pl}元)`)}}`);
+        msgs.push(`🔴 卖出 ${result.newSells.map(b => `${b.name}(盈亏${b.pl > 0 ? "+" : ""}${b.pl}元)`).join(", ")}`);
       }
       if (msgs.length > 0) {
         setMessage(msgs.join(" | "));
-        setTimeout(() => setMessage(""), 5000);
+        setTimeout(() => setMessage(""), 8000);
       } else {
         setMessage(h.length > 0 ? `当前持仓 ${h.length} 只` : "暂无持仓，等待积极观察标的出现");
       }
-    } catch (err) {
-      setMessage("数据加载失败");
+    } catch (err: any) {
+      console.error("[组合] 加载失败:", err);
+      setMessage(`数据加载失败: ${err.message || "未知错误"}`);
+      // 即使API失败，也从本地加载已有持仓显示
+      try {
+        const { holdings: h, summary: s } = calculateHoldings({});
+        if (h.length > 0) {
+          setHoldings(h);
+          setSummary(s);
+        }
+      } catch {}
     }
 
     setLoading(false);
