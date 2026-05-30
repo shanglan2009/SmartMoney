@@ -4,5 +4,10 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "regions": ["hkg1"],
-  "crons": []
+  "crons": [
+    {
+      "path": "/api/scores?refresh=true",
+      "schedule": "0 */6 * * *"
+    }
+  ]
 }

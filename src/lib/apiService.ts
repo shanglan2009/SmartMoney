@@ -1,98 +1,124 @@
 /**
- * 数据服务 — 实时行情 + 供应链分析
- *
- * 数据层级:
- * 1. 实时行情 → 东方财富 API (通过 Next.js API 代理)
- * 2. 财务/供应链数据 → 本地 Mock (后续接入真实API)
+ * 数据服务 — 实时行情 + 供应链评分（自动刷新）
+ * 
+ * 数据流:
+ * 1. 前端请求 /api/scores
+ * 2. API 检查缓存（1小时过期）
+ * 3. 过期则拉取东方财富 → 评分引擎 → 更新缓存
+ * 4. 返回最新评分 + 行情数据
  */
 
-import { getStockAnalysis, getStockList } from "./mockData";
-import type { StockAnalysisResponse, StockListItem } from "./types";
+import type { RatingLevel } from "./types";
 
-// ========== 实时行情 ==========
+// ========== 类型定义 ==========
 
-interface QuoteData {
+export interface LiveStockItem {
   code: string;
   name: string;
-  price: number;
-  changePercent: number;
-  high: number;
-  low: number;
-  volume: number;
-  turnoverRate: number;
-  pe: number;
-  totalMarketCap: number;
-  circulatingMarketCap: number;
+  industry: string;
+  category: string;
+  score: number;
+  rating: RatingLevel;
+  price: number | null;
+  changePercent: number | null;
+  priceChange: string;
+  signal: string;
+  lastUpdated: string;
 }
 
-let quotesCache: Record<string, QuoteData> | null = null;
-let lastFetchTime = 0;
-const CACHE_TTL = 30_000; // 30秒
+export interface LiveStockDetail extends LiveStockItem {
+  pe: number | null;
+  dimensions: { name: string; score: number; weight: number }[];
+  suppliers: { name: string; ratio: number; industry?: string; financialHealth?: string }[];
+  updatedAt: string;
+}
 
-async function fetchQuotes(): Promise<Record<string, QuoteData>> {
+// ========== 信号描述生成 ==========
+
+function generateSignal(score: number, industry: string, changePercent: number | null): string {
+  if (score >= 85) return "供应链极其脆弱，建议高度警惕";
+  if (score >= 70) return "供应链风险显著，上游依赖度高";
+  if (score >= 55) return "供应商结构需关注，替代选择有限";
+  if (changePercent !== null && changePercent > 5) return "价格强势，关注供应链支撑";
+  if (score >= 20) return "供应链整体健康，风险可控";
+  return "供应链优势明显，供应商竞争充分";
+}
+
+// ========== 缓存系统 ==========
+
+let scoreCache: LiveStockItem[] | null = null;
+interface DetailCache {
+  [code: string]: LiveStockDetail;
+}
+let detailCache: DetailCache = {};
+let lastFetchTime = 0;
+const CACHE_TTL = 60_000; // 前端缓存60秒（API层已有1小时缓存）
+
+// ========== 获取全部股票列表 ==========
+
+export async function getLiveStockList(): Promise<LiveStockItem[]> {
   const now = Date.now();
-  if (quotesCache && now - lastFetchTime < CACHE_TTL) {
-    return quotesCache;
+  if (scoreCache && now - lastFetchTime < CACHE_TTL) {
+    return scoreCache;
   }
 
   try {
-    const res = await fetch("/api/data", { signal: AbortSignal.timeout(8000) });
+    const res = await fetch("/api/scores", { signal: AbortSignal.timeout(10000) });
     const data = await res.json();
-    if (data.quotes) {
-      quotesCache = data.quotes;
+
+    if (data.stocks && Array.isArray(data.stocks)) {
+      scoreCache = data.stocks.map((s: any) => ({
+        code: s.code,
+        name: s.name,
+        industry: s.industry,
+        category: s.category,
+        score: s.score,
+        rating: s.rating as RatingLevel,
+        price: s.price,
+        changePercent: s.changePercent,
+        priceChange: s.changePercent !== null
+          ? `${s.changePercent > 0 ? "+" : ""}${s.changePercent.toFixed(2)}%`
+          : "--",
+        signal: generateSignal(s.score, s.industry, s.changePercent),
+        lastUpdated: s.updatedAt,
+      }));
       lastFetchTime = now;
+      // 同时缓存详情
+      data.stocks.forEach((s: any) => {
+        detailCache[s.code] = s;
+      });
     }
-    return data.quotes || {};
+    return scoreCache || [];
   } catch {
-    return quotesCache || {};
+    return scoreCache || [];
   }
 }
 
-// ========== 对外接口 ==========
+// ========== 获取个股详情 ==========
 
-export interface LiveStockItem extends StockListItem {
-  price?: number;
-  liveChange?: string;
+export async function getLiveStockAnalysis(code: string): Promise<LiveStockDetail | null> {
+  // 先尝试从缓存取
+  if (detailCache[code]) return detailCache[code];
+
+  try {
+    const res = await fetch(`/api/scores?code=${code}`, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.code) {
+      detailCache[code] = data;
+      return data;
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
-/** 获取带实时行情的股票列表 */
-export async function getLiveStockList(): Promise<LiveStockItem[]> {
-  const [mockList, quotes] = await Promise.all([
-    Promise.resolve(getStockList()),
-    fetchQuotes(),
-  ]);
+// ========== 手动刷新 ==========
 
-  return mockList.map((stock) => {
-    const q = quotes[stock.code];
-    if (!q) return stock;
-
-    const changeStr =
-      q.changePercent > 0
-        ? `+${q.changePercent.toFixed(2)}%`
-        : `${q.changePercent.toFixed(2)}%`;
-
-    return {
-      ...stock,
-      price: q.price,
-      liveChange: changeStr,
-      priceChange: changeStr, // 覆盖 mock 的静态数据
-    };
-  });
-}
-
-/** 获取带实时行情的个股分析 */
-export async function getLiveStockAnalysis(
-  code: string
-): Promise<(StockAnalysisResponse & { liveQuote?: QuoteData }) | null> {
-  const [mockData, quotes] = await Promise.all([
-    Promise.resolve(getStockAnalysis(code)),
-    fetchQuotes(),
-  ]);
-
-  if (!mockData) return null;
-
-  return {
-    ...mockData,
-    liveQuote: quotes[code] || undefined,
-  };
+export async function forceRefresh(): Promise<void> {
+  scoreCache = null;
+  detailCache = {};
+  lastFetchTime = 0;
+  await getLiveStockList();
 }

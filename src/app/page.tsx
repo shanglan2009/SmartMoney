@@ -2,9 +2,10 @@
 
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { TrendingUp, TrendingDown, AlertTriangle, BarChart3 } from "lucide-react";
-import { getLiveStockList } from "@/lib/apiService";
-import type { LiveStockItem, RatingLevel } from "@/lib/types";
+import { TrendingUp, TrendingDown, AlertTriangle, BarChart3, RefreshCw } from "lucide-react";
+import { getLiveStockList, forceRefresh } from "@/lib/apiService";
+import type { LiveStockItem } from "@/lib/apiService";
+import type { RatingLevel } from "@/lib/types";
 import { RATING_ORDER } from "@/lib/types";
 import RatingBadge from "@/components/RatingBadge";
 
@@ -22,16 +23,20 @@ export default function HomePage() {
   const [sortBy, setSortBy] = useState<"score" | "name" | "change">("score");
   const [allStocks, setAllStocks] = useState<LiveStockItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadData = async (force = false) => {
+    if (force) setRefreshing(true);
+    const stocks = await getLiveStockList();
+    setAllStocks(stocks);
+    setLoading(false);
+    setRefreshing(false);
+  };
 
   useEffect(() => {
-    getLiveStockList().then((stocks) => {
-      setAllStocks(stocks);
-      setLoading(false);
-    });
-    // 每30秒刷新
-    const interval = setInterval(() => {
-      getLiveStockList().then(setAllStocks);
-    }, 30_000);
+    loadData();
+    // 每60秒自动刷新
+    const interval = setInterval(() => loadData(), 60_000);
     return () => clearInterval(interval);
   }, []);
 
@@ -99,6 +104,31 @@ export default function HomePage() {
           <p className="text-xs text-muted mt-1">供应链优势明显</p>
         </div>
       </section>
+
+      {/* 刷新状态 */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2 text-xs text-muted">
+          {refreshing ? (
+            <span className="inline-flex items-center gap-1">
+              <RefreshCw className="h-3 w-3 animate-spin" />
+              正在刷新评分...
+            </span>
+          ) : allStocks.length > 0 && (
+            <span>
+              上次更新: {new Date(allStocks[0]?.lastUpdated || Date.now()).toLocaleTimeString("zh-CN")}
+              · 共 {allStocks.length} 只
+            </span>
+          )}
+        </div>
+        <button
+          onClick={() => loadData(true)}
+          disabled={refreshing}
+          className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border border-rule bg-panel text-ink-2 hover:bg-paper-3 transition-colors disabled:opacity-50"
+        >
+          <RefreshCw className={`h-3 w-3 ${refreshing ? "animate-spin" : ""}`} />
+          刷新评分
+        </button>
+      </div>
 
       {/* Rating Filter Pills (Serenity style) */}
       <div className="flex flex-wrap gap-1.5 mb-3">
