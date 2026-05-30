@@ -55,7 +55,7 @@ export interface BidEvent {
 /** 统一证据结构 */
 export interface Evidence {
   date: string;
-  source: "公告" | "进出口" | "专利" | "大宗商品" | "招标";
+  source: "公告" | "进出口" | "专利" | "大宗商品" | "招标" | "全球供应链";
   type: "正面" | "反面" | "中性";
   stockCode?: string;
   description: string;

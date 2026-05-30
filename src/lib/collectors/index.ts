@@ -17,6 +17,7 @@ import { fetchTradeData, tradeToEvidences } from "./trade";
 import { fetchBatchBids, bidsToEvidences } from "./bidding";
 import { getAllMaterialPrices, getMaterialImpactScore } from "../supplyChainCollector";
 import { GLOBAL_STOCKS } from "../globalStocks";
+import { getSupplyRelations, supplyRelationsToEvidences, getRegionSummary } from "./globalTrade";
 
 // ========== 缓存系统 ==========
 
@@ -152,7 +153,19 @@ export async function collectAllEvidences(
     stats["招标"] = bidEvidences.length;
   } catch (e) { errors.push(`招标: ${e}`); }
 
-  // 5. 进出口证据
+  // 5. 全球供应链关系证据
+  try {
+    for (const stock of GLOBAL_STOCKS) {
+      const relations = getSupplyRelations(stock.code);
+      if (relations.length > 0) {
+        const relEvidences = supplyRelationsToEvidences(relations);
+        allEvidences.push(...relEvidences);
+      }
+    }
+    stats["全球供应链"] = allEvidences.filter(e => e.source === "全球供应链").length;
+  } catch (e) { errors.push(`全球供应链: ${e}`); }
+
+  // 6. 进出口证据
   try {
     const industries = [...new Set(GLOBAL_STOCKS.map(s => s.industry))];
     for (const ind of industries) {

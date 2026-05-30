@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { GLOBAL_STOCKS } from "@/lib/globalStocks";
 import { collectAllEvidences, getEvidencesForStock } from "@/lib/collectors";
 import { sequentialUpdate as sequentialBayesian, bomPrior, marketImpliedProb as marketImplied, calcConfidence, getRating } from "@/lib/bayesianEngine";
+import { getSupplyRelations } from "@/lib/collectors/globalTrade";
 
 let quotesCache: Record<string, any> = {};
 let cacheTime = 0;
@@ -87,6 +88,16 @@ export async function GET(request: Request) {
       changePercent,
       pe,
       evidenceCount: stockEvidences.length,
+      regionBreakdown: (() => {
+        try {
+          const { getRegionBreakdown } = require("@/lib/collectors/globalTrade");
+          return getRegionBreakdown();
+        } catch { return [] }
+      })(),
+      supplyRelations: (() => {
+        try { return getSupplyRelations(stock.code).map(r => ({customer: r.customer, hq: r.customerHQ, product: r.product, verified: r.isVerified})) }
+        catch { return [] }
+      })(),
       evidenceBreakdown: {
         公告: stockEvidences.filter(e => e.source === "公告").length,
         专利: stockEvidences.filter(e => e.source === "专利").length,
