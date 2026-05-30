@@ -152,6 +152,7 @@ async function fetchQuotes(): Promise<Record<string, any>> {
           price: item.f2,
           changePercent: item.f3,
           pe: item.f21,
+          turnoverRate: item.f20,
         };
       }
     }
@@ -171,7 +172,15 @@ function computeAllScores(quotes: Record<string, any>): ScoreResult[] {
     const pe = q.pe ?? null;
     const changePercent = q.changePercent ?? null;
 
-    const score = ScoringEngine.calculateFullScore(stock.industry, price, pe, null, changePercent, stock.code);
+    // 使用实时数据中的换手率(f20字段)和价格计算动量
+    const turnoverRate = q.turnoverRate || null;
+    // 上月涨跌幅暂用本月的一半作为近似（精确值需要历史K线）
+    const prevMonthChange = changePercent !== null ? changePercent * 0.6 : null;
+    
+    const score = ScoringEngine.calculateFullScore(
+      stock.industry, price, pe, null, changePercent, stock.code,
+      prevMonthChange, turnoverRate
+    );
     const suppliers = ScoringEngine.getSuppliersForIndustry(stock.industry);
 
     return {
