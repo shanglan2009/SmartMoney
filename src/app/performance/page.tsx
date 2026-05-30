@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { TrendingUp, TrendingDown, Activity, BarChart3, Minus, RefreshCw } from "lucide-react";
 import { loadPortfolio } from "@/lib/portfolioStore";
 import {
-  generateBacktest,
+  generateRealBacktest,
   getMonthlyDirectionSummary,
   type BacktestSummary,
 } from "@/lib/backtestEngine";
@@ -25,8 +25,18 @@ export default function PerformancePage() {
         const list = data.stocks || [];
         setStocks(list);
 
-        // 生成5个月回测数据
-        const bt = generateBacktest(list);
+        // 获取真实历史K线数据
+        let historyData = [];
+        try {
+          const histRes = await fetch("/api/history", { signal: AbortSignal.timeout(30000) });
+          const histData = await histRes.json();
+          historyData = histData.stocks || [];
+        } catch (e) {
+          console.warn("[战绩] 历史数据获取失败，使用模拟回测");
+        }
+
+        // 生成回测数据（优先使用真实历史数据）
+        const bt = generateRealBacktest(list, historyData);
         setBacktest(bt);
 
         // 读取组合数据
@@ -149,11 +159,16 @@ export default function PerformancePage() {
                   <th className="text-center px-4 py-2.5 font-medium">正确</th>
                   <th className="text-center px-4 py-2.5 font-medium">错误</th>
                   <th className="text-right px-4 py-2.5 font-medium">准确率</th>
+                  <th className="text-right px-4 py-2.5 font-medium">平均涨跌</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-rule">
                 {backtest.months.map((month) => {
                   const dir = getMonthlyDirectionSummary(month.stocks);
+                  // 计算当月平均涨跌幅
+                  const avgChange = month.stocks.length > 0
+                    ? month.stocks.reduce((s, st) => s + st.changePercent, 0) / month.stocks.length
+                    : 0;
                   return (
                     <tr key={month.month} className="hover:bg-paper-3">
                       <td className="px-4 py-2.5 font-medium text-ink">{month.month}</td>
@@ -185,6 +200,11 @@ export default function PerformancePage() {
                         month.accuracy >= 80 ? "text-green-600" : month.accuracy >= 60 ? "text-amber-400" : "text-red-600"
                       }`}>
                         {month.accuracy}%
+                      </td>
+                      <td className={`px-4 py-2.5 text-right font-mono ${
+                        avgChange >= 0 ? "text-green-600" : "text-red-600"
+                      }`}>
+                        {avgChange >= 0 ? "+" : ""}{avgChange.toFixed(1)}%
                       </td>
                     </tr>
                   );
