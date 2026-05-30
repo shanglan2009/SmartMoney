@@ -7,7 +7,7 @@
   "crons": [
     {
       "path": "/api/scores?refresh=true",
-      "schedule": "0 */6 * * *"
+      "schedule": "0 6 * * *"
     }
   ]
 }
