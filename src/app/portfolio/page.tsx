@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import {
   loadPortfolio, updatePortfolio, calculateHoldings,
-  resetPortfolio, savePortfolio,
+  resetPortfolio, startSimulation, savePortfolio,
   type HoldingWithPL, type PortfolioSummary
 } from "@/lib/portfolioStore";
 
@@ -201,6 +201,15 @@ export default function PortfolioPage() {
           <TrendingUp className="h-12 w-12 mx-auto mb-3 opacity-30" />
           <p>暂无持仓</p>
           <p className="text-xs mt-1">当股票进入「积极观察」评级时，将自动买入100股</p>
+          <button
+            onClick={() => {
+              startSimulation();
+              loadData(true);
+            }}
+            className="mt-3 px-4 py-2 rounded-full bg-ink text-white text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            开始模拟 → 立即买入当前积极观察股票
+          </button>
         </div>
       )}
 

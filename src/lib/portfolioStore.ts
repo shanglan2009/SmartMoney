@@ -90,6 +90,8 @@ export function updatePortfolio(
 ): UpdateResult {
   const state = loadPortfolio();
   const prevWatch = state.lastPositiveWatchSnapshot;
+  
+  // 首次运行或有新进入积极观察的股票 → 买入100股
   const today = new Date().toISOString().split("T")[0];
 
   const currentSet = new Set(currentPositiveWatch);
@@ -284,4 +286,13 @@ export function calculateHoldings(
 export function resetPortfolio(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(STORAGE_KEY);
+}
+
+/** 开始模拟：重置并清空快照，下次加载时会检测积极观察列表变化并买入 */
+export function startSimulation(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(STORAGE_KEY);
+  // 保存一个空快照，让下次updatePortfolio检测到所有积极观察为"新进入"
+  const initState = { ...DEFAULT_STATE, lastPositiveWatchSnapshot: [] };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(initState));
 }
