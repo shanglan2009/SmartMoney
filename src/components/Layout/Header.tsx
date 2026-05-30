@@ -8,6 +8,7 @@ import {
   Search,
   CalendarDays,
   TrendingUp,
+  Wallet,
 } from "lucide-react";
 import SearchBox from "@/components/SearchBox";
 
@@ -16,6 +17,7 @@ const navItems = [
   { href: "/stocks", label: "股票", icon: Search },
   { href: "/alerts", label: "预警", icon: MessageSquareText },
   { href: "/industry", label: "行业", icon: CalendarDays },
+  { href: "/portfolio", label: "模拟市值", icon: Wallet },
   { href: "/performance", label: "战绩", icon: TrendingUp },
 ];
 
