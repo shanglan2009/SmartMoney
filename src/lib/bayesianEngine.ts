@@ -52,7 +52,7 @@ export interface PriorBreakdown {
  * 基于行业知识生成BOM分析结论
  * 模拟"拆解BOM表、研读学术论文"后的先验估计
  */
-function bomPrior(stock: GlobalStock): { prior: number; breakdown: PriorBreakdown } {
+export function bomPrior(stock: GlobalStock): { prior: number; breakdown: PriorBreakdown } {
   // 行业基础先验（基于全球供应链研究）
   const industryBase: Record<string, { prior: number; insight: string }> = {
     "芯片制造":     { prior: 0.65, insight: "先进制程产能全球紧缺，EUV光刻机被ASML垄断" },
@@ -115,9 +115,9 @@ function bomPrior(stock: GlobalStock): { prior: number; breakdown: PriorBreakdow
 // ========== 2️⃣ 证据收集与似然度 ==========
 
 export interface Evidence {
-  type: "正面" | "反面" | "中性";
-  source: "价格动量" | "估值信号" | "财报信号" | "技术进展" | "客户动态";
-  strength: "强" | "中" | "弱";
+  type: string;
+  source: string;
+  strength: string;
   description: string;
   likelihood: number;     // P(E|H)
   falsePositive: number;  // P(E|¬H)
@@ -223,7 +223,7 @@ function bayesianUpdate(prior: number, likelihood: number, falsePositive: number
 /**
  * 序贯贝叶斯更新：逐条处理证据
  */
-function sequentialUpdate(prior: number, evidences: Evidence[]): number {
+export function sequentialUpdate(prior: number, evidences: Evidence[]): number {
   let posterior = prior;
   for (const ev of evidences) {
     if (ev.type === "正面") {
@@ -240,7 +240,7 @@ function sequentialUpdate(prior: number, evidences: Evidence[]): number {
 /**
  * 市场隐含概率：从PE反推市场对"瓶颈"的定价
  */
-function marketImpliedProb(pe: number | null, prior: number): number {
+export function marketImpliedProb(pe: number | null, prior: number): number {
   if (pe === null || pe <= 0) return prior * 0.5;  // 亏损股 = 市场不认可
   
   // PE越高, 市场隐含的瓶颈概率越高
@@ -253,7 +253,7 @@ function marketImpliedProb(pe: number | null, prior: number): number {
 /**
  * 置信度：基于证据数量和强度
  */
-function calcConfidence(evidenceCount: number): number {
+export function calcConfidence(evidenceCount: number): number {
   return Math.min(95, Math.round(15 + evidenceCount * 18));
 }
 
