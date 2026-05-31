@@ -6,10 +6,6 @@
   "regions": ["hkg1"],
   "crons": [
     {
-      "path": "/api/scores?refresh=true",
-      "schedule": "0 6 * * *"
-    },
-    {
       "path": "/api/trump/refresh",
       "schedule": "0 5 * * *"
     }

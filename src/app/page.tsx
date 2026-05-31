@@ -1,237 +1,104 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { TrendingUp, TrendingDown, AlertTriangle, BarChart3, RefreshCw } from "lucide-react";
-import type { RatingLevel } from "@/lib/types";
-import { RATING_ORDER } from "@/lib/types";
-import RatingBadge from "@/components/RatingBadge";
-import ActionBadge from "@/components/ActionBadge";
-
-interface StockRow {
-  code: string; name: string; industry: string; score: number; rating: string;
-  action: string; price: number | null; changePercent: number | null;
-  pe: number | null; priceChange: string; signal: string;
-  financial?: { revenue?: number; revenueYoy?: number; netProfit?: number; profitYoy?: number; grossMargin?: number };
-  supplyRelations?: { customer: string; hq: string }[];
-}
-
-const ratingFilters: { label: string; value: string }[] = [
-  { label: "全部", value: "all" },
-  { label: "🟢 强烈推荐", value: "强烈推荐" },
-  { label: "✅ 买入", value: "买入" },
-  { label: "📈 增持", value: "增持" },
-  { label: "⏸️ 持有", value: "持有" },
-  { label: "⚖️ 中性", value: "中性" },
-  { label: "⬇️ 减持", value: "减持" },
-  { label: "🔴 卖出", value: "卖出" },
-];
+import { ArrowRight, BarChart3, Users, RefreshCw, Globe } from "lucide-react";
 
 export default function HomePage() {
-  const [activeFilter, setActiveFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<"score" | "name" | "change">("score");
-  const [allStocks, setAllStocks] = useState<StockRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const loadData = async (force = false) => {
-    if (force) setRefreshing(true);
-    try {
-      const res = await fetch("/api/collect" + (force ? "?refresh=true" : ""), { signal: AbortSignal.timeout(10000) });
-      const data = await res.json();
-      const stocks: StockRow[] = (data.stocks || []).map((s: any) => ({
-        code: s.code, name: s.name, industry: s.industry,
-        score: s.rotationScore || 0, rating: s.rating || "中性",
-        action: "", price: s.price, changePercent: s.changePercent,
-        pe: s.pe, priceChange: s.changePercent !== null ? `${s.changePercent > 0 ? "+" : ""}${s.changePercent.toFixed(2)}%` : "--",
-        signal: s.posterior > 0.7 ? "全球供应链核心节点" : s.posterior > 0.4 ? "国际分工深入" : s.posterior > 0.2 ? "国际业务发展中" : "国内业务为主",
-        financial: s.financial || undefined,
-        supplyRelations: s.supplyRelations || [],
-      }));
-      setAllStocks(stocks);
-    } catch {}
-    setLoading(false);
-    setRefreshing(false);
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const filtered = useMemo(() => {
-    let list = activeFilter === "all" ? allStocks
-      : allStocks.filter((s) => s.rating === activeFilter);
-    return [...list].sort((a, b) => {
-      if (sortBy === "score") return b.score - a.score;
-      if (sortBy === "name") return a.name.localeCompare(b.name);
-      return parseFloat(b.priceChange) - parseFloat(a.priceChange);
-    });
-  }, [allStocks, activeFilter, sortBy]);
-
-  // Stats
-  const stats = useMemo(() => {
-    return {
-      total: allStocks.length,
-      highRisk: allStocks.filter((s) => s.rating === "减持" || s.rating === "卖出").length,
-      positive: allStocks.filter((s) => s.rating === "增持" || s.rating === "强烈推荐").length,
-      watch: allStocks.filter((s) => s.rating === "持有" || s.rating === "中性").length,
-    };
-  }, [allStocks]);
-
-  const getScoreColor = (score: number) => {
-    if (score >= 85) return "text-emerald-600";
-    if (score >= 70) return "text-green-600";
-    if (score >= 55) return "text-teal-600";
-    if (score >= 40) return "text-slate-600";
-    if (score >= 25) return "text-amber-500";
-    if (score >= 10) return "text-orange-500";
-    return "text-red-500";
-  };
+  const router = useRouter();
 
   return (
-    <div>
-      {/* Stats Cards */}
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4 mb-4">
-        <div className="rounded-lg border border-rule bg-panel p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted font-medium uppercase tracking-wide">覆盖标的</span>
-            <BarChart3 className="h-4 w-4 text-muted" />
-          </div>
-          <p className="mt-2 text-2xl font-semibold text-ink">{stats.total}</p>
-          <p className="text-xs text-muted mt-1">重点行业供应链监控</p>
+    <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
+      {/* Hero */}
+      <div className="max-w-2xl mx-auto mb-12 animate-fade-in">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-medium mb-6">
+          <RefreshCw className="h-3 w-3" />
+          每日 UTC 05:00 自动刷新 · 数据源: Open Cabinet / OGE
         </div>
-        <div className="rounded-lg border border-rule bg-panel p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted font-medium uppercase tracking-wide">高风险</span>
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-          </div>
-          <p className="mt-2 text-2xl font-semibold text-red-600">{stats.highRisk}</p>
-          <p className="text-xs text-muted mt-1">减持 · 减持</p>
-        </div>
-        <div className="rounded-lg border border-rule bg-panel p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted font-medium uppercase tracking-wide">观察中</span>
-            <TrendingUp className="h-4 w-4 text-blue-400" />
-          </div>
-          <p className="mt-2 text-2xl font-semibold text-blue-400">{stats.watch}</p>
-          <p className="text-xs text-muted mt-1">供应链需持续关注</p>
-        </div>
-        <div className="rounded-lg border border-rule bg-panel p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted font-medium uppercase tracking-wide">健康/强烈推荐</span>
-            <TrendingDown className="h-4 w-4 text-green-600" />
-          </div>
-          <p className="mt-2 text-2xl font-semibold text-green-600">{stats.positive}</p>
-          <p className="text-xs text-muted mt-1">供应链优势明显</p>
-        </div>
-      </section>
+        
+        <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4 tracking-tight">
+          SmartMoney
+          <span className="block text-2xl sm:text-3xl font-medium text-slate-400 mt-2">
+            政要持仓追踪
+          </span>
+        </h1>
+        
+        <p className="text-base sm:text-lg text-slate-500 mb-8 leading-relaxed max-w-xl mx-auto">
+          基于美国政要公开披露的股票交易数据（OGE / Open Cabinet），
+          追踪特朗普及政府核心成员的持仓变化，为你提供独特的投资视角
+        </p>
 
-      {/* 刷新状态 */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2 text-xs text-muted">
-          {refreshing ? (
-            <span className="inline-flex items-center gap-1">
-              <RefreshCw className="h-3 w-3 animate-spin" />
-              正在刷新评分...
-            </span>
-          ) : allStocks.length > 0 && (
-            <span>
-              上次更新: {new Date().toLocaleTimeString("zh-CN")}
-              · 共 {allStocks.length} 只
-            </span>
-          )}
-        </div>
-        <button
-          onClick={() => loadData(true)}
-          disabled={refreshing}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border border-rule bg-panel text-ink-2 hover:bg-paper-3 transition-colors disabled:opacity-50"
-        >
-          <RefreshCw className={`h-3 w-3 ${refreshing ? "animate-spin" : ""}`} />
-          刷新评分
-        </button>
-      </div>
-
-      {/* Rating Filter Pills (Serenity style) */}
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        {ratingFilters.map((f) => (
-          <button
-            key={f.value}
-            onClick={() => setActiveFilter(f.value)}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-              activeFilter === f.value
-                ? f.value === "all"
-                  ? "bg-ink text-white border-ink"
-                  : `${RATING_ORDER.includes(f.value as RatingLevel) ? "bg-ink text-white border-ink" : ""}`
-                : "bg-panel text-ink-2 border-rule hover:bg-paper-3"
-            }`}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Link
+            href="/trump"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-colors shadow-lg shadow-slate-200"
           >
-            {f.label}
-          </button>
-        ))}
+            进入仪表盘
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <a
+            href="https://open-cabinet.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-6 py-3 border border-slate-200 text-slate-600 rounded-xl font-medium hover:bg-slate-50 transition-colors"
+          >
+            了解数据源
+            <Globe className="h-4 w-4" />
+          </a>
+        </div>
       </div>
 
-      {/* Stock List Table (Serenity style grid) */}
-      <div className="rounded-lg border border-rule bg-panel overflow-hidden"><div className="table-scroll">
-        {/* Header */}
-        <div className="grid grid-cols-[2rem_minmax(4rem,0.7fr)_minmax(0,1fr)_auto_auto_auto_auto_auto_auto] gap-3 px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide border-b border-rule bg-paper-2">
-          <span></span>
-          <span>代码</span>
-          <span>名称</span>
-          <span className="text-right cursor-pointer" onClick={() => setSortBy("score")}>评分</span>
-          <span className="text-right">评级</span>
-          <span className="text-right">建议</span>
-          <span className="text-right cursor-pointer" onClick={() => setSortBy("change")}>涨跌幅</span>
-          <span className="text-right">市盈率</span>
-          <span className="text-right">信号</span>
+      {/* Feature Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto w-full">
+        <div className="rounded-xl border border-slate-100 bg-white p-5 text-left shadow-sm">
+          <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center mb-3">
+            <Users className="h-5 w-5 text-amber-600" />
+          </div>
+          <h3 className="font-semibold text-slate-900 mb-1">政要覆盖</h3>
+          <p className="text-sm text-slate-400">追踪 19+ 位特朗普政府核心成员及国会议员的美股持仓</p>
         </div>
 
-        {/* Rows - Serenity style compact */}
-        <div className="divide-y divide-rule">
-          {filtered.map((stock) => (
-            <Link
-              key={stock.code}
-              href={`/stock/${stock.code}`}
-              className="grid grid-cols-[2rem_minmax(4rem,0.7fr)_minmax(0,1fr)_auto_auto_auto_auto_auto_1fr] gap-3 px-4 py-2.5 items-center hover:bg-paper-3 transition-colors"
+        <div className="rounded-xl border border-slate-100 bg-white p-5 text-left shadow-sm">
+          <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center mb-3">
+            <BarChart3 className="h-5 w-5 text-blue-600" />
+          </div>
+          <h3 className="font-semibold text-slate-900 mb-1">多维分析</h3>
+          <p className="text-sm text-slate-400">行业分布、买卖排行、持仓建议，一目了然</p>
+        </div>
+
+        <div className="rounded-xl border border-slate-100 bg-white p-5 text-left shadow-sm">
+          <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center mb-3">
+            <RefreshCw className="h-5 w-5 text-green-600" />
+          </div>
+          <h3 className="font-semibold text-slate-900 mb-1">每日更新</h3>
+          <p className="text-sm text-slate-400">自动聚合 Open Cabinet / TrumpTrades 等五大数据源</p>
+        </div>
+      </div>
+
+      {/* Data Sources */}
+      <div className="mt-12 text-center">
+        <p className="text-xs text-slate-400 uppercase tracking-wider font-medium mb-3">数据来源</p>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          {[
+            { name: "Open Cabinet", url: "https://open-cabinet.org" },
+            { name: "TrumpTrades", url: "https://trumpstrades.com" },
+            { name: "Trump Tracker", url: "https://trumptracker.org" },
+            { name: "OGE", url: "https://oge.gov" },
+            { name: "ProPublica", url: "https://projects.propublica.org/trump-team-financial-disclosures/" },
+          ].map((s) => (
+            <a
+              key={s.name}
+              href={s.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-slate-400 hover:text-slate-600 underline underline-offset-2 transition-colors"
             >
-              <span className="flex h-6 w-6 items-center justify-center rounded bg-paper-3 text-[10px] font-semibold text-muted">
-                {stock.industry.slice(0, 2)}
-              </span>
-              <span className="font-mono text-sm font-medium text-ink">{stock.code}</span>
-              <div className="min-w-0">
-                <span className="text-sm text-ink font-medium">{stock.name}</span>
-                <span className="text-xs text-muted ml-2">{stock.industry}</span>
-              </div>
-              <span className={`text-sm font-semibold text-right ${getScoreColor(stock.score)}`}>
-                {stock.score}
-              </span>
-              <div className="text-right">
-                <RatingBadge rating={stock.rating as RatingLevel} size="sm" />
-              </div>
-              <div className="text-right">
-                <ActionBadge action={stock.action} />
-              </div>
-              <span className={`text-sm font-medium text-right ${
-                stock.priceChange.startsWith("+") ? "text-green-600" : "text-red-600"
-              }`}>
-                {stock.priceChange}
-              </span>
-              <span className="text-xs text-muted text-right truncate">{stock.signal}</span>
-            </Link>
+              {s.name}
+            </a>
           ))}
         </div>
-      </div></div>
-
-      {loading && (
-        <div className="text-center py-12 text-muted animate-pulse">
-          正在加载实时行情...
-        </div>
-      )}
-
-      {!loading && filtered.length === 0 && (
-        <div className="text-center py-12 text-muted">
-          该评级下暂无标的
-        </div>
-      )}
+      </div>
     </div>
   );
 }
