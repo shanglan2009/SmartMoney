@@ -56,9 +56,6 @@ export default function HomePage() {
 
   useEffect(() => {
     loadData();
-    // 每60秒自动刷新
-    const interval = setInterval(() => loadData(), 60_000);
-    return () => clearInterval(interval);
   }, []);
 
   const filtered = useMemo(() => {

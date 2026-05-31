@@ -10,7 +10,7 @@ import { getAllBayesianScores } from "@/lib/bayesianEngine";
 
 let quotesCache: Record<string, any> = {};
 let cacheTime = 0;
-const CACHE_TTL = 60_000;
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 每天刷新一次
 
 function secid(code: string) {
   return code.startsWith("6") || code.startsWith("9") ? `1.${code}` : `0.${code}`;
