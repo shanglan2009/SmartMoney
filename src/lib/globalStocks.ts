@@ -71,4 +71,12 @@ export const GLOBAL_STOCKS: GlobalStock[] = [
   { code: "002594", name: "比亚迪", industry: "新能源车/电池", market: "SZ", overseasRatio: 0.08, rdRatio: 0.065, rdExpense: 186.5, moatLevel: "高", globalCustomers: ["全球EV市场"], role: "全球EV销量领先", revenue: 2856.8 },
   { code: "300751", name: "迈为股份", industry: "高端制造/光伏", market: "SZ", overseasRatio: 0.35, rdRatio: 0.125, rdExpense: 8.5, moatLevel: "高", globalCustomers: ["全球HJT设备"], role: "HJT电池设备龙头", revenue: 62.5 },
   { code: "603606", name: "东方电缆", industry: "高端制造/海缆", market: "SH", overseasRatio: 0.12, rdRatio: 0.042, rdExpense: 4.5, moatLevel: "中", globalCustomers: ["全球海缆项目"], role: "全球海缆供应商", revenue: 68.5 },
+
+  { code: "300456", name: "赛微电子", industry: "MEMS传感器/芯片", market: "SZ", overseasRatio: 0.30, rdRatio: 0.15, rdExpense: 3.5, moatLevel: "中", globalCustomers: ["全球MEMS代工","意法半导体"], role: "MEMS传感器代工", revenue: 22.5 },
+  { code: "600563", name: "法拉电子", industry: "薄膜电容器", market: "SH", overseasRatio: 0.25, rdRatio: 0.05, rdExpense: 1.2, moatLevel: "高", globalCustomers: ["特斯拉","华为","阳光电源"], role: "薄膜电容器全球前三", revenue: 42.8 },
+  { code: "300124", name: "汇川技术", industry: "机器人/工控", market: "SZ", overseasRatio: 0.15, rdRatio: 0.12, rdExpense: 22.5, moatLevel: "高", globalCustomers: ["宁德时代","比亚迪","全球工控市场"], role: "国产伺服/PLC龙头", revenue: 245.8 },
+  { code: "600522", name: "中天科技", industry: "光缆/海缆", market: "SH", overseasRatio: 0.20, rdRatio: 0.04, rdExpense: 8.5, moatLevel: "中", globalCustomers: ["全球海缆项目","华为"], role: "全球海缆+光缆供应商", revenue: 385.6 },
+  { code: "002270", name: "华明装备", industry: "变压器分接开关", market: "SZ", overseasRatio: 0.30, rdRatio: 0.05, rdExpense: 1.5, moatLevel: "极高", globalCustomers: ["西门子","ABB","全球变压器厂"], role: "变压器分接开关全球龙头(90%份额)", revenue: 28.5 },
+  { code: "300827", name: "上能电气", industry: "储能/逆变器", market: "SZ", overseasRatio: 0.25, rdRatio: 0.06, rdExpense: 2.5, moatLevel: "中", globalCustomers: ["全球光伏项目","中核"], role: "逆变器供应商", revenue: 38.5 },
+  { code: "605117", name: "德业股份", industry: "储能/逆变器", market: "SH", overseasRatio: 0.55, rdRatio: 0.05, rdExpense: 3.5, moatLevel: "高", globalCustomers: ["全球光储市场","巴西/南非/德国"], role: "微型逆变器全球龙头", revenue: 68.5 },
 ];

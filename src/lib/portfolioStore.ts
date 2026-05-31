@@ -2,8 +2,8 @@
  * 模拟市值组合管理器
  * 
  * 规则:
- * - 股票进入「积极观察」评级 → 自动买入100股
- * - 股票退出「积极观察」评级 → 自动清仓
+ * - 股票进入「强烈推荐」评级 → 自动买入100股
+ * - 股票退出「强烈推荐」评级 → 自动清仓
  * - 所有数据存储在 localStorage
  */
 
@@ -31,7 +31,7 @@ export interface PortfolioState {
   cash: number;
   totalDeposited: number;
   trades: TradeRecord[];
-  lastPositiveWatchSnapshot: string[]; // 上一次的积极观察列表
+  lastPositiveWatchSnapshot: string[]; // 上一次的强烈推荐列表
   lastUpdateDate: string;
 }
 
@@ -79,8 +79,8 @@ export interface UpdateResult {
 }
 
 /**
- * 根据最新的积极观察列表更新持仓
- * @param currentPositiveWatch 当前评级为「积极观察」的股票代码列表
+ * 根据最新的强烈推荐列表更新持仓
+ * @param currentPositiveWatch 当前评级为「强烈推荐」的股票代码列表
  * @param prices 当前价格映射 { code: {price, name} }
  * @returns 更新结果
  */
@@ -91,7 +91,7 @@ export function updatePortfolio(
   const state = loadPortfolio();
   const prevWatch = state.lastPositiveWatchSnapshot;
   
-  // 首次运行或有新进入积极观察的股票 → 买入100股
+  // 首次运行或有新进入强烈推荐的股票 → 买入100股
   const today = new Date().toISOString().split("T")[0];
 
   const currentSet = new Set(currentPositiveWatch);
@@ -100,7 +100,7 @@ export function updatePortfolio(
   const newBuys: UpdateResult["newBuys"] = [];
   const newSells: UpdateResult["newSells"] = [];
 
-  // === 检测新进入积极观察的股票 → 买入 100 股 ===
+  // === 检测新进入强烈推荐的股票 → 买入 100 股 ===
   for (const code of currentPositiveWatch) {
     if (!prevSet.has(code)) {
       const priceInfo = prices[code];
@@ -147,7 +147,7 @@ export function updatePortfolio(
     }
   }
 
-  // === 检测退出积极观察的股票 → 清仓 ===
+  // === 检测退出强烈推荐的股票 → 清仓 ===
   for (const code of prevWatch) {
     if (!currentSet.has(code)) {
       const holding = state.holdings[code];
@@ -288,11 +288,11 @@ export function resetPortfolio(): void {
   localStorage.removeItem(STORAGE_KEY);
 }
 
-/** 开始模拟：重置并清空快照，下次加载时会检测积极观察列表变化并买入 */
+/** 开始模拟：重置并清空快照，下次加载时会检测强烈推荐列表变化并买入 */
 export function startSimulation(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(STORAGE_KEY);
-  // 保存一个空快照，让下次updatePortfolio检测到所有积极观察为"新进入"
+  // 保存一个空快照，让下次updatePortfolio检测到所有强烈推荐为"新进入"
   const initState = { ...DEFAULT_STATE, lastPositiveWatchSnapshot: [] };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(initState));
 }

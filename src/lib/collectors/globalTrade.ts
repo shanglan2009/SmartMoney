@@ -86,7 +86,15 @@ export const GLOBAL_SUPPLY_RELATIONS: GlobalSupplyRelation[] = [
   { supplierCode: "688472", supplierName: "阿特斯", customer: "中东光伏项目", customerHQ: "中东", product: "光伏组件", knownSince: "2018", revenueShare: 0.25, source: "阿特斯年报", isVerified: false },
   { supplierCode: "002850", supplierName: "科达利", customer: "Panasonic", customerHQ: "日本", product: "电池结构件", knownSince: "2019", revenueShare: 0.08, source: "松下供应链报告", isVerified: false },
   { supplierCode: "688008", supplierName: "澜起科技", customer: "Sony", customerHQ: "日本", product: "内存接口", knownSince: "2022", revenueShare: 0.05, source: "索尼供应链报告", isVerified: false },
-];
+
+  // ===== 汇川技术/法拉电子/华明装备等 =====
+  { supplierCode: "300456", supplierName: "赛微电子", customer: "STMicroelectronics", customerHQ: "瑞士/欧盟", product: "MEMS代工", knownSince: "2019", revenueShare: 0.20, source: "行业研报", isVerified: false },
+  { supplierCode: "300456", supplierName: "赛微电子", customer: "Bosch", customerHQ: "德国", product: "MEMS代工", knownSince: "2020", revenueShare: 0.15, source: "行业研报", isVerified: false },
+  { supplierCode: "600563", supplierName: "法拉电子", customer: "Tesla", customerHQ: "美国", product: "薄膜电容器", knownSince: "2022", revenueShare: 0.15, source: "行业研报", isVerified: false },
+  { supplierCode: "300124", supplierName: "汇川技术", customer: "宁德时代", customerHQ: "中国", product: "伺服/PLC", knownSince: "2020", revenueShare: 0.10, source: "年报", isVerified: true },
+  { supplierCode: "002270", supplierName: "华明装备", customer: "Siemens", customerHQ: "德国", product: "分接开关", knownSince: "2015", revenueShare: 0.25, source: "年报", isVerified: true },
+  { supplierCode: "002270", supplierName: "华明装备", customer: "ABB", customerHQ: "瑞士", product: "分接开关", knownSince: "2016", revenueShare: 0.20, source: "年报", isVerified: true },
+  { supplierCode: "605117", supplierName: "德业股份", customer: "全球光储市场", customerHQ: "全球", product: "微逆/储能", knownSince: "2020", revenueShare: 0.50, source: "年报", isVerified: true },];
 
 // ========== 按股票代码查询供应链关系 ==========
 

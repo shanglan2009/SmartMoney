@@ -25,7 +25,7 @@ export default function PortfolioPage() {
 
     try {
       // 1. 获取最新评分数据
-      const res = await fetch(`/api/scores${force ? "?refresh=true" : ""}`, {
+      const res = await fetch(`/api/collect${force ? "?refresh=true" : ""}`, {
         signal: AbortSignal.timeout(15000),
       });
       if (!res.ok) {

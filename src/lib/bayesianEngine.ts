@@ -55,6 +55,11 @@ export interface PriorBreakdown {
 export function bomPrior(stock: GlobalStock): { prior: number; breakdown: PriorBreakdown } {
   // 行业基础先验（基于全球供应链研究）
   const industryBase: Record<string, { prior: number; insight: string }> = {
+  "MEMS传感器/芯片":  { prior: 0.45, insight: "MEMS传感器品类多、单一市场小，但车规/工业级认证壁垒高" },
+  "薄膜电容器":     { prior: 0.60, insight: "薄膜电容器全球市场集中，法拉电子市占率全球前三，新能源车+光伏驱动" },
+  "机器人/工控":     { prior: 0.55, insight: "国产伺服/PLC龙头，受益于机器人+自动化产业升级" },
+  "光缆/海缆":      { prior: 0.40, insight: "海缆认证周期长(3-5年)，全球海风装机增长拉动需求" },
+  "变压器分接开关":  { prior: 0.80, insight: "全球垄断级标的！华明装备占全球分接开关90%份额，ABB/西门子都找它买" },
     "芯片制造":     { prior: 0.65, insight: "先进制程产能全球紧缺，EUV光刻机被ASML垄断" },
     "芯片/内存接口":  { prior: 0.70, insight: "DDR5内存接口芯片只有2家供应商，澜起是龙头" },
     "存储芯片":     { prior: 0.55, insight: "NOR Flash市场寡头格局，兆易创新全球前三" },

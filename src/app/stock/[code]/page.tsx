@@ -11,42 +11,26 @@ import SupplierTable from "@/components/StockPage/SupplierTable";
 import SupplyGraph from "@/components/StockPage/SupplyGraph";
 import RiskEvents from "@/components/StockPage/RiskEvents";
 
-interface LiveData {
-  code: string;
-  name: string;
-  industry: string;
-  price: number | null;
-  changePercent: number | null;
-  pe: number | null;
-  score: number;
-  rating: string;
-  action: string;
-  buySignal: number;
-  sellSignal: number;
-  dimensions: { name: string; score: number; weight: number }[];
-  suppliers: { name: string; ratio: number; industry?: string; financialHealth?: string }[];
-  prior: number;
-  posterior: number;
-  confidence: number;
-  bottleneckType: string[];
-  mispricing: number;
-  mispricingSignal: string;
-  rotationScore: number;
-  marketImpliedProb?: number;
+interface ApiData {
+  code: string; name: string; industry: string;
+  price: number | null; changePercent: number | null; pe: number | null;
+  rotationScore: number; rating: string; posterior: number; prior: number;
+  confidence: number; cognitiveGap: number; marketImplied: number;
+  overseasRatio: number; moatLevel: string; bomInsight: string;
+  supplyRelations: { customer: string; hq: string; product: string; verified: boolean }[];
+  financial?: { revenue?: number; revenueYoy?: number; netProfit?: number; profitYoy?: number; grossMargin?: number; rdRatio?: number };
 }
 
 export default function StockPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = use(params);
-  const [data, setData] = useState<LiveData | null>(null);
+  const [data, setData] = useState<ApiData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const loadData = async (force = false) => {
+  const loadData = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/scores?code=${code}${force ? "&refresh=true" : ""}`, {
-        signal: AbortSignal.timeout(10000),
-      });
+      const res = await fetch(`/api/collect?code=${code}`, { signal: AbortSignal.timeout(10000) });
       if (!res.ok) throw new Error(`API ${res.status}`);
       const d = await res.json();
       if (!d || !d.code) throw new Error("未找到数据");
@@ -58,75 +42,32 @@ export default function StockPage({ params }: { params: Promise<{ code: string }
     setLoading(false);
   };
 
-  useEffect(() => {
-    loadData();
-  }, [code]);
+  useEffect(() => { loadData(); }, [code]);
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4 animate-pulse">
-        <div className="h-8 w-48 rounded bg-paper-3" />
-        <div className="h-4 w-32 rounded bg-paper-3" />
+  if (loading) return <div className="flex items-center justify-center py-20 text-muted animate-pulse">加载中...</div>;
+  if (error || !data) return (
+    <div className="flex flex-col items-center justify-center py-20 gap-4">
+      <AlertTriangle className="h-12 w-12 text-muted" />
+      <p className="text-lg text-muted">未找到股票代码: {code}</p>
+      <p className="text-xs text-muted">{error}</p>
+      <div className="flex gap-2">
+        <Link href="/" className="text-sm text-accent hover:underline px-3 py-1.5">返回首页</Link>
+        <button onClick={loadData} className="text-sm text-accent hover:underline px-3 py-1.5 border border-rule rounded-full">重试</button>
       </div>
-    );
-  }
+    </div>
+  );
 
-  if (error || !data) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <AlertTriangle className="h-12 w-12 text-muted" />
-        <p className="text-lg text-muted">未找到股票代码: {code}</p>
-        <p className="text-xs text-muted">{error}</p>
-        <div className="flex gap-2">
-          <Link href="/" className="text-sm text-accent hover:underline px-3 py-1.5">返回首页</Link>
-          <button onClick={() => loadData(true)} className="text-sm text-accent hover:underline px-3 py-1.5 border border-rule rounded-full">
-            重试
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const { name, industry, price, changePercent, pe, rotationScore, rating, posterior, prior, confidence, cognitiveGap, overseasRatio, bomInsight, supplyRelations, financial } = data;
+  const fin = financial;
 
-  const { name, industry, price, changePercent, score, rating, action, buySignal, sellSignal } = data;
-  const dimensions = data.dimensions || [];
-  const suppliers = data.suppliers || [];
-
-  // Mock data for graph and events (these aren't in the live API yet)
-  const mockGraph = {
-    nodes: [
-      { id: code, name, type: "company" as const },
-      ...suppliers.slice(0, 5).map((s, i) => ({ id: s.name, name: s.name, type: "supplier" as const, group: i })),
-    ],
-    edges: suppliers.slice(0, 5).map((s) => ({
-      source: s.name, target: code, type: "supplies_to" as const, amount: s.ratio,
-    })),
-  };
-
-  const formatPct = (v: number | null) => {
-    if (v === null || v === undefined) return "--";
-    return `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
-  };
-
-  const formatMoney = (v: number | null) => {
-    if (v === null) return "--";
-    return `¥${v.toFixed(2)}`;
-  };
-
-  const actionColors: Record<string, string> = {
-    "强烈买入": "bg-emerald-50 text-emerald-700 border-emerald-300",
-    "买入": "bg-green-50 text-green-600 border-green-300",
-    "持有": "bg-slate-50 text-slate-600 border-slate-300",
-    "减仓": "bg-amber-50 text-amber-600 border-amber-300",
-    "卖出": "bg-red-50 text-red-600 border-red-300",
-  };
+  const formatPct = (v: number | null | undefined) => v != null ? `${v >= 0 ? "+" : ""}${v.toFixed(2)}%` : "--";
+  const formatMoney = (v: number | null | undefined) => v != null ? `¥${v.toFixed(2)}` : "--";
 
   return (
     <div>
-      {/* Back & Header */}
       <div className="mb-4">
         <Link href="/" className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink transition-colors mb-2">
-          <ArrowLeft className="h-4 w-4" />
-          返回总览
+          <ArrowLeft className="h-4 w-4" /> 返回总览
         </Link>
         <div className="flex items-center gap-3 flex-wrap">
           <h1 className="text-2xl font-semibold text-ink">{name}</h1>
@@ -136,113 +77,104 @@ export default function StockPage({ params }: { params: Promise<{ code: string }
         </div>
       </div>
 
-      {/* Key Metrics Row */}
+      {/* 核心指标行 */}
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4 mb-4">
-        <ScoreGauge score={score} rating={rating as RatingLevel} />
-        
+        <ScoreGauge score={rotationScore} rating={rating as RatingLevel} />
+
+        {/* 实时行情 */}
         <div className="rounded-lg border border-rule bg-panel p-4">
           <h3 className="text-xs font-medium text-muted uppercase tracking-wide mb-2">实时行情</h3>
           <p className="text-2xl font-bold text-ink">{formatMoney(price)}</p>
-          <p className={`text-sm font-medium ${(changePercent ?? 0) >= 0 ? "text-green-600" : "text-red-600"}`}>
-            {formatPct(changePercent)}
-          </p>
-          {data.pe && <p className="text-xs text-muted mt-1">PE: {data.pe.toFixed(1)}</p>}
+          <p className={`text-sm font-medium ${(changePercent ?? 0) >= 0 ? "text-green-600" : "text-red-600"}`}>{formatPct(changePercent)}</p>
+          <div className="flex gap-2 mt-1 text-xs text-muted">
+            <span>PE(TTM): {pe != null ? pe.toFixed(1) : "--"}</span>
+            <span>海外收入: {(overseasRatio * 100).toFixed(0)}%</span>
+          </div>
         </div>
 
+        {/* 贝叶斯指标 */}
         <div className="rounded-lg border border-rule bg-panel p-4">
           <h3 className="text-xs font-medium text-muted uppercase tracking-wide mb-2">贝叶斯指标</h3>
-          <div className="space-y-1">
-            <div className="flex justify-between">
-              <span className="text-xs text-ink-2">后验 P(H|E)</span>
-              <span className="text-xs font-bold text-ink">{(data.posterior * 100).toFixed(0)}%</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-xs text-ink-2">置信度</span>
-              <span className="text-xs font-bold text-ink">{data.confidence}</span>
-            </div>
+          <div className="space-y-1.5">
+            <div className="flex justify-between"><span className="text-xs text-ink-2">先验 P(H)</span><span className="text-xs font-bold text-ink">{(prior * 100).toFixed(0)}%</span></div>
+            <div className="flex justify-between"><span className="text-xs text-ink-2">后验 P(H|E)</span><span className="text-xs font-bold text-ink">{(posterior * 100).toFixed(0)}%</span></div>
+            <div className="flex justify-between"><span className="text-xs text-ink-2">置信度</span><span className="text-xs font-bold text-ink">{confidence}/100</span></div>
             <div className="flex justify-between">
               <span className="text-xs text-ink-2">认知差</span>
-              <span className={`text-xs font-bold ${(data.mispricing ?? 0) >= 0 ? "text-green-600" : "text-red-600"}`}>
-                {(data.mispricing ?? 0) >= 0 ? "+" : ""}{(data.mispricing ?? 0) * 100 > 1 ? ">" : ""}
-                {((data.mispricing ?? 0) * 100).toFixed(0)}%
+              <span className={`text-xs font-bold ${(cognitiveGap ?? 0) >= 0 ? "text-green-600" : "text-red-600"}`}>
+                {cognitiveGap != null ? `${cognitiveGap >= 0 ? "+" : ""}${(cognitiveGap * 100).toFixed(0)}%` : "--"}
               </span>
             </div>
+            <div className="flex justify-between"><span className="text-xs text-ink-2">护城河</span><span className="text-xs font-bold text-ink">{data.moatLevel || "--"}</span></div>
           </div>
         </div>
 
+        {/* 财报数据 */}
         <div className="rounded-lg border border-rule bg-panel p-4">
-          <h3 className="text-xs font-medium text-muted uppercase tracking-wide mb-2">操作建议</h3>
-          <p className={`text-lg font-bold ${action.includes("买入") ? "text-green-600" : action.includes("卖") ? "text-red-600" : "text-ink"}`}>
-            {action}
-          </p>
-          <div className="flex gap-2 mt-1">
-            <span className="text-[10px] text-muted bg-paper-3 px-1.5 py-0.5 rounded">
-              买入信号 {buySignal}
-            </span>
-            <span className="text-[10px] text-muted bg-paper-3 px-1.5 py-0.5 rounded">
-              卖出信号 {sellSignal}
-            </span>
-          </div>
-          {data.bottleneckType && data.bottleneckType.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-1">
-              {data.bottleneckType.map((b: string) => (
-                <span key={b} className="text-[9px] text-amber-600 bg-amber-50 px-1 py-0.5 rounded">
-                  {b}
-                </span>
-              ))}
+          <h3 className="text-xs font-medium text-muted uppercase tracking-wide mb-2">最新财报</h3>
+          {fin ? (
+            <div className="space-y-1.5">
+              {fin.revenue != null && <div className="flex justify-between"><span className="text-xs text-ink-2">营收</span><span className="text-xs font-medium text-ink">{fin.revenue.toFixed(1)}亿</span></div>}
+              {fin.revenueYoy != null && <div className="flex justify-between"><span className="text-xs text-ink-2">营收同比</span><span className={`text-xs font-medium ${fin.revenueYoy >= 0 ? "text-green-600" : "text-red-600"}`}>{fin.revenueYoy >= 0 ? "+" : ""}{fin.revenueYoy.toFixed(1)}%</span></div>}
+              {fin.netProfit != null && <div className="flex justify-between"><span className="text-xs text-ink-2">净利润</span><span className="text-xs font-medium text-ink">{fin.netProfit.toFixed(1)}亿</span></div>}
+              {fin.profitYoy != null && <div className="flex justify-between"><span className="text-xs text-ink-2">利润同比</span><span className={`text-xs font-medium ${fin.profitYoy >= 0 ? "text-green-600" : "text-red-600"}`}>{fin.profitYoy >= 0 ? "+" : ""}{fin.profitYoy.toFixed(1)}%</span></div>}
+              {fin.grossMargin != null && <div className="flex justify-between"><span className="text-xs text-ink-2">毛利率</span><span className="text-xs font-medium text-ink">{fin.grossMargin.toFixed(1)}%</span></div>}
             </div>
-          )}
+          ) : <p className="text-xs text-muted">暂无财报数据</p>}
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
-          {dimensions.length > 0 && (
-            <div className="rounded-lg border border-rule bg-panel p-4">
-              <h3 className="text-sm font-semibold text-ink mb-3">评分维度</h3>
-              <RadarChart dimensions={dimensions} />
+          {/* BOM分析 */}
+          <div className="rounded-lg border border-rule bg-panel p-4">
+            <h3 className="text-sm font-semibold text-ink mb-2">BOM产业分析</h3>
+            <p className="text-xs text-ink-2 leading-relaxed">{bomInsight || "暂无BOM分析数据"}</p>
+            <div className="mt-2 flex flex-wrap gap-1">
+              {supplyRelations && supplyRelations.map((r, i) => (
+                <span key={i} className={`text-[10px] px-1.5 py-0.5 rounded-full border ${r.verified ? "bg-green-50 text-green-700 border-green-200" : "bg-amber-50 text-amber-600 border-amber-200"}`}>
+                  {r.customer}({r.hq}) {r.verified ? "✓" : "⚡"}
+                </span>
+              ))}
             </div>
-          )}
+          </div>
 
-          {suppliers.length > 0 && (
-            <div className="rounded-lg border border-rule bg-panel p-4">
-              <h3 className="text-sm font-semibold text-ink mb-3">核心供应商</h3>
-              <SupplierTable suppliers={suppliers.map(s => ({ ...s, id: s.name, isListed: false, financialHealth: (s.financialHealth || "normal") as "healthy" | "normal" | "risky" }))} />
-            </div>
-          )}
-
+          {/* 供应链关系图谱 */}
           <div className="rounded-lg border border-rule bg-panel p-4">
             <h3 className="text-sm font-semibold text-ink mb-3">供应链关系图谱</h3>
-            <SupplyGraph graph={mockGraph} />
+            <SupplyGraph graph={{
+              nodes: [
+                { id: code, name, type: "company" as const },
+                ...(supplyRelations || []).slice(0, 5).map((r, i) => ({ id: r.customer, name: r.customer, type: "supplier" as const, group: i })),
+              ],
+              edges: (supplyRelations || []).slice(0, 5).map((r) => ({
+                source: code, target: r.customer, type: "supplies_to" as const, label: r.product,
+              })),
+            }} />
           </div>
         </div>
 
         <div className="space-y-4">
+          {/* 评估说明 */}
           <div className="rounded-lg border border-rule bg-panel p-4">
             <h3 className="text-sm font-semibold text-ink mb-2">评估说明</h3>
-            <div className="space-y-2 text-xs text-ink-2 leading-relaxed">
-              <p>本评分基于贝叶斯框架：</p>
+            <div className="space-y-1.5 text-xs text-ink-2 leading-relaxed">
+              <p>基于贝叶斯框架 P(H|E) = P(E|H) × P(H) / P(E)</p>
               <ul className="list-disc pl-4 space-y-1">
-                <li><strong>先验概率 P(H)</strong>: {(data.prior * 100).toFixed(0)}% — 基于BOM拆解和供应商结构</li>
-                <li><strong>后验概率 P(H|E)</strong>: {(data.posterior * 100).toFixed(0)}% — 更新后信念</li>
-                <li><strong>置信度</strong>: {data.confidence}/100 — 证据越充分越自信</li>
-                <li><strong>市场隐含概率</strong>: {data.marketImpliedProb !== undefined ? (data.marketImpliedProb * 100).toFixed(0) : "--"}% — 从PE反推</li>
-                <li><strong>认知差</strong>: {data.mispricing !== undefined ? `${(data.mispricing > 0 ? "+" : "")}${(data.mispricing * 100).toFixed(0)}%` : "--"}</li>
-                <li><strong>轮动分数</strong>: {data.rotationScore ?? "--"}/100</li>
+                <li><strong>先验 P(H)</strong>: {(prior * 100).toFixed(0)}% — BOM产业分析</li>
+                <li><strong>后验 P(H|E)</strong>: {(posterior * 100).toFixed(0)}% — 证据更新后</li>
+                <li><strong>认知差</strong>: {cognitiveGap != null ? `${cognitiveGap >= 0 ? "+" : ""}${(cognitiveGap * 100).toFixed(0)}%` : "--"} — 后验 vs 市场定价</li>
+                <li><strong>海外收入</strong>: {(overseasRatio * 100).toFixed(0)}%</li>
               </ul>
             </div>
           </div>
 
+          {/* 风险事件 */}
           <div className="rounded-lg border border-rule bg-panel p-4">
             <h3 className="text-sm font-semibold text-ink mb-2">风险事件</h3>
             <RiskEvents events={[
-              ...(data.changePercent !== null && Math.abs(data.changePercent) > 5
-                ? [{ date: new Date().toISOString().split("T")[0], type: "原材料涨价" as const, title: `当日涨跌幅 ${data.changePercent.toFixed(1)}%`, impact: "high" as const }]
-                : []),
-              ...(data.pe && data.pe > 80
-                ? [{ date: new Date().toISOString().split("T")[0], type: "产能不足" as const, title: `市盈率 ${data.pe.toFixed(0)}倍，高于行业平均`, impact: "medium" as const }]
-                : []),
+              ...(changePercent != null && Math.abs(changePercent) > 5 ? [{ date: new Date().toISOString().split("T")[0], type: "产能不足" as const, title: `当日涨跌幅 ${changePercent.toFixed(1)}%`, impact: "high" as const }] : []),
+              ...(pe != null && pe > 80 ? [{ date: new Date().toISOString().split("T")[0], type: "产能不足" as const, title: `PE ${pe.toFixed(0)}倍，估值偏高`, impact: "medium" as const }] : []),
             ]} />
           </div>
         </div>
