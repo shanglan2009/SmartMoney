@@ -39,7 +39,7 @@ export default function PortfolioPage() {
 
       // 2. 找出增持列表
       const positiveWatch = stocks
-        .filter((s: any) => s.rating === "增持")
+        .filter((s: any) => s.rating === "强烈推荐" || s.rating === "买入")
         .map((s: any) => s.code);
 
       console.log(`[组合] 增持 ${positiveWatch.length} 只, 共 ${stocks.length} 只股票`);
@@ -74,7 +74,7 @@ export default function PortfolioPage() {
         setMessage(msgs.join(" | "));
         setTimeout(() => setMessage(""), 8000);
       } else {
-        setMessage(h.length > 0 ? `当前持仓 ${h.length} 只` : "暂无持仓，等待增持标的出现");
+        setMessage(h.length > 0 ? `当前持仓 ${h.length} 只` : "暂无持仓，等待强烈推荐/买入标的出现");
       }
     } catch (err: any) {
       console.error("[组合] 加载失败:", err);
