@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Serenity A股 供应链分析",
-  description: "基于供应链稀缺度的A股业绩预测风险评级平台",
+  title: "SmartMoney | 政要持仓追踪 & A股供应链分析",
+  description: "追踪特朗普及美国政要的美股持仓变化，结合A股供应链稀缺度分析，提供多市场投资参考",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: "/favicon.ico",

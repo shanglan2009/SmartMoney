@@ -12,11 +12,13 @@ import {
   Wallet,
   Menu,
   X,
+  Landmark,
 } from "lucide-react";
 import SearchBox from "@/components/SearchBox";
 
 const navItems = [
   { href: "/", label: "总览", icon: Activity },
+  { href: "/trump", label: "Trump持仓", icon: Landmark },
   { href: "/stocks", label: "股票", icon: Search },
   { href: "/alerts", label: "预警", icon: MessageSquareText },
   { href: "/industry", label: "行业", icon: CalendarDays },
@@ -33,15 +35,15 @@ export default function Header() {
       <div className="mx-auto flex w-full max-w-[1480px] items-center justify-between gap-2 rounded-full border border-rule bg-white/95 px-3 py-2 backdrop-blur md:px-4">
         {/* Logo + Brand */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-ink text-[10px] font-semibold text-white sm:h-8 sm:w-8 sm:text-xs md:h-9 md:w-9 md:text-sm">
-            SA
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-amber-700 text-[10px] font-semibold text-white sm:h-8 sm:w-8 sm:text-xs md:h-9 md:w-9 md:text-sm">
+            SM
           </span>
           <span className="min-w-0">
             <span className="block text-xs font-semibold text-ink sm:text-sm">
-              Serenity A股
+              SmartMoney
             </span>
             <span className="hidden truncate text-[10px] text-muted sm:block sm:text-xs">
-              供应链稀缺度分析
+              政要持仓追踪 · 供应链分析
             </span>
           </span>
         </Link>
