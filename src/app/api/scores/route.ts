@@ -140,7 +140,7 @@ function secid(code: string) {
 
 async function fetchQuotes(): Promise<Record<string, any>> {
   const secids = ALL_STOCKS.map(s => secid(s.code)).join(",");
-  const url = `https://push2.eastmoney.com/api/qt/ulist.np/get?fltt=2&fields=f2,f3,f4,f5,f12,f14,f15,f16,f17,f18,f20,f21,f115,f152&secids=${secids}`;
+  const url = `https://push2.eastmoney.com/api/qt/ulist.np/get?fltt=2&fields=f2,f3,f4,f5,f12,f14,f15,f16,f17,f18,f20,f9,f115,f152&secids=${secids}`;
   try {
     const res = await fetch(url, {
       headers: { "User-Agent": "Mozilla/5.0", Referer: "https://quote.eastmoney.com/" },

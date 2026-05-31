@@ -94,11 +94,20 @@ export default function PortfolioPage() {
   }, []);
 
   useEffect(() => {
-    loadData();
-    // 每60秒自动刷新
+    // 首次加载：如果无持仓且有积极观察股票，自动开始模拟
+    async function init() {
+      const pf = loadPortfolio();
+      const hasNoHoldings = Object.keys(pf.holdings).length === 0;
+      if (hasNoHoldings || pf.lastPositiveWatchSnapshot.length === 0) {
+        // 无持仓或首次运行 → 清除快照让updatePortfolio检测所有为新进入
+        startSimulation();
+      }
+      await loadData(true);
+    }
+    init();
     const interval = setInterval(() => loadData(), 60_000);
     return () => clearInterval(interval);
-  }, [loadData]);
+  }, []);
 
   const handleReset = () => {
     if (confirm("确定重置所有持仓数据？这将清空交易记录和持仓。")) {

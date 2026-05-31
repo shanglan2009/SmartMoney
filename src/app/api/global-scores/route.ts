@@ -24,7 +24,7 @@ async function fetchQuotes(): Promise<Record<string, any>> {
   const secids = codes.map(secid).join(",");
   try {
     const res = await fetch(
-      `https://push2.eastmoney.com/api/qt/ulist.np/get?fltt=2&fields=f2,f3,f12,f14,f20,f21&secids=${secids}`,
+      `https://push2.eastmoney.com/api/qt/ulist.np/get?fltt=2&fields=f2,f3,f12,f14,f20,f9&secids=${secids}`,
       { headers: { "User-Agent": "Mozilla/5.0", Referer: "https://quote.eastmoney.com/" },
         signal: AbortSignal.timeout(10000) }
     );
